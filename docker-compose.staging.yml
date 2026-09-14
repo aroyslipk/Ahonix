@@ -1,0 +1,53 @@
+# ==============================================================================
+# AHONIX — Staging Single-Origin Docker Compose Deployment
+# Architecture: https://staging.ahonix.com
+#   - Frontend SPA served at /
+#   - FastAPI backend proxied via Nginx at /api/
+#   - Database: Remote MongoDB Atlas staging cluster (ahonix_staging)
+# ==============================================================================
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ahonix-staging-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.staging
+    expose:
+      - "8000"
+    ports:
+      # Optional: bind locally to 127.0.0.1 for direct debugging/health inspection
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ahonix-staging-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Empty string forces relative /api calls (same origin https://staging.ahonix.com)
+        - REACT_APP_BACKEND_URL=
+    container_name: ahonix-staging-frontend
+    restart: unless-stopped
+    ports:
+      # Map container port 80 to host port 80 (or forward behind Cloudflare/ALB/Caddy)
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ahonix-staging-net
+
+networks:
+  ahonix-staging-net:
+    driver: bridge

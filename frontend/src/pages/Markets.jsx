@@ -1,0 +1,167 @@
+import React, { useState } from "react";
+import { Globe, Rocket, Loader2, Sparkles } from "lucide-react";
+import { useSection } from "@/lib/hooks";
+import { api, fmtCurrency, fmtNumber } from "@/lib/api";
+import { PageSkeleton, ErrorState } from "@/components/StateViews";
+import { EmptyWorkspace } from "@/pages/Overview";
+import { Card, SectionHeader, Stat } from "@/components/primitives";
+import { ValueBadge } from "@/components/ValueBadge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+function Meter({ label, value, max = 100, suffix = "", color = "#10B981" }) {
+  return (
+    <div>
+      <div className="mb-1 flex justify-between text-xs"><span className="text-[#94A3B8]">{label}</span><span className="font-metric text-[#CBD5E1]">{value}{suffix}</span></div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-[#0F111A]"><div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} /></div>
+    </div>
+  );
+}
+
+export default function Markets() {
+  const { data, isLoading, isError, refetch } = useSection("markets", "/markets");
+  const [sim, setSim] = useState({ country: "Germany", price: 89, demand_units: 400, inventory_units: 300, marketing_budget: 5000 });
+  const [result, setResult] = useState(null);
+  const [running, setRunning] = useState(false);
+
+  if (isLoading) return <PageSkeleton />;
+  if (isError) return <ErrorState onRetry={refetch} />;
+  if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
+
+  const cur = data.workspace.currency;
+
+  const runSim = async () => {
+    setRunning(true);
+    try {
+      const { data: res } = await api.post("/markets/simulate", {
+        ...sim,
+        price: Number(sim.price),
+        demand_units: Number(sim.demand_units),
+        inventory_units: Number(sim.inventory_units),
+        marketing_budget: Number(sim.marketing_budget),
+      });
+      setResult(res.result);
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader title="Market Intelligence" subtitle="Where should you sell next?" icon={Globe} right={<ValueBadge kind="DEMO" />} />
+
+      <Tabs defaultValue="opportunities">
+        <TabsList className="border border-[#1E2235] bg-[#0F111A]">
+          <TabsTrigger value="opportunities" data-testid="markets-tab-opps" className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-300">Opportunities</TabsTrigger>
+          <TabsTrigger value="simulator" data-testid="markets-tab-sim" className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-300">Launch Simulator</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="opportunities" className="mt-6">
+          <div className="grid gap-4 lg:grid-cols-2">
+            {data.markets.map((m) => (
+              <Card key={m.code} className="p-5 card-hover" data-testid={`market-card-${m.code}`}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-[#F8FAFC]">{m.flag} {m.country}</h3>
+                    <p className="text-xs text-[#64748B]">Current revenue {fmtCurrency(m.current_revenue, cur, true)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-metric text-2xl font-extrabold text-emerald-400">{m.opportunity_score}</p>
+                    <p className="text-[10px] uppercase tracking-wide text-[#64748B]">Opportunity</p>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3">
+                  <Meter label="Demand" value={m.demand} />
+                  <Meter label="Competition" value={m.competition} color="#F59E0B" />
+                  <Meter label="Projected margin" value={m.projected_margin} max={40} suffix="%" />
+                  <div className="flex flex-col justify-center gap-1 text-xs">
+                    <span className="text-[#94A3B8]">Shipping: <span className="text-[#CBD5E1]">{m.shipping_complexity}</span></span>
+                    <span className="text-[#94A3B8]">Return risk: <span className="text-[#CBD5E1]">{m.return_risk}</span></span>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-start gap-2 rounded-lg bg-[#0F111A] p-3">
+                  <Sparkles size={13} className="mt-0.5 shrink-0 text-emerald-400" />
+                  <p className="text-xs text-[#CBD5E1]">
+                    {m.opportunity_score >= 80
+                      ? `Strong opportunity — ${m.existing_traffic.toLowerCase()} existing traffic and healthy projected margin. Prioritize localization to lift conversion.`
+                      : m.opportunity_score >= 65
+                      ? `Promising — decent demand but watch ${m.return_risk.toLowerCase()} return risk and ${m.shipping_complexity.toLowerCase()} shipping complexity.`
+                      : `Test cautiously — higher competition or lower conversion. Start with a small budget before committing inventory.`}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="simulator" className="mt-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="p-6">
+              <SectionHeader title="Simulate market entry" subtitle="Model a launch before you commit" icon={Rocket} />
+              <div className="mt-5 space-y-4">
+                <div>
+                  <Label className="text-[#94A3B8]">Target country</Label>
+                  <Select value={sim.country} onValueChange={(v) => setSim({ ...sim, country: v })}>
+                    <SelectTrigger className="mt-1.5 border-[#2D334B] bg-[#0F111A] text-[#F8FAFC]" data-testid="sim-country"><SelectValue /></SelectTrigger>
+                    <SelectContent className="border-[#2D334B] bg-[#0F111A] text-[#F8FAFC]">
+                      {data.markets.map((m) => <SelectItem key={m.code} value={m.country}>{m.flag} {m.country}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {[
+                  ["Expected price", "price"], ["Estimated monthly demand (units)", "demand_units"],
+                  ["Inventory allocation (units)", "inventory_units"], ["Marketing budget", "marketing_budget"],
+                ].map(([label, key]) => (
+                  <div key={key}>
+                    <Label className="text-[#94A3B8]">{label}</Label>
+                    <Input type="number" value={sim[key]} onChange={(e) => setSim({ ...sim, [key]: e.target.value })}
+                      className="mt-1.5 border-[#2D334B] bg-[#0F111A] text-[#F8FAFC]" data-testid={`sim-${key}`} />
+                  </div>
+                ))}
+                <Button onClick={runSim} disabled={running} className="w-full bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400" data-testid="sim-run-btn">
+                  {running ? <Loader2 className="animate-spin" size={16} /> : <>Run simulation <Rocket size={15} className="ml-1.5" /></>}
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <SectionHeader title="Projection" subtitle="Estimated / projected outcomes" />
+                <ValueBadge kind="PROJECTED" />
+              </div>
+              {!result ? (
+                <div className="mt-10 flex flex-col items-center text-center text-sm text-[#64748B]">
+                  <Rocket size={28} className="mb-3 text-[#334155]" />
+                  Run a simulation to see projected revenue, profit and break-even.
+                </div>
+              ) : (
+                <div className="mt-5 space-y-4" data-testid="sim-result">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Stat label="Projected revenue" value={fmtCurrency(result.projected_revenue, cur)} />
+                    <Stat label="Projected profit" value={fmtCurrency(result.projected_profit, cur)} />
+                    <Stat label="Est. orders (4 wk)" value={fmtNumber(result.estimated_orders)} />
+                    <Stat label="Est. CAC" value={fmtCurrency(result.estimated_cac, cur)} />
+                    <Stat label="Required inventory" value={fmtNumber(result.required_inventory)} />
+                    <Stat label="Return risk" value={`${result.estimated_return_risk}%`} sub={result.return_risk_label} />
+                    <Stat label="Break-even" value={result.breakeven_weeks ? `${result.breakeven_weeks} wk` : "—"} />
+                    <Stat label="Opportunity" value={result.opportunity_score} />
+                  </div>
+                  <div className="rounded-lg bg-[#0F111A] p-3">
+                    <p className="text-xs text-[#94A3B8]"><span className="font-semibold text-rose-300">Main risk: </span>{result.main_risk}</p>
+                  </div>
+                  <div className="flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+                    <Sparkles size={14} className="mt-0.5 shrink-0 text-emerald-400" />
+                    <p className="text-xs text-[#CBD5E1]"><span className="font-semibold text-emerald-300">Strategy: </span>{result.strategy}</p>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

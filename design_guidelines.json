@@ -1,0 +1,213 @@
+{
+  "project_name": "AHONIX — The AI Commerce OS",
+  "theme": "premium_dark",
+  "brand_identity": {
+    "name": "AHONIX",
+    "tagline": "The AI Commerce OS",
+    "archetype": "Performance Pro & Swiss Technical Precision",
+    "core_philosophy": "Intelligent business command center, not a conventional BI dashboard or generic chatbot. Focus on 'What should I do next?' with actionable AI reasoning, confidence scores, evidence, simulations, and automated execution workflows.",
+    "demo_store": "Northstar Goods"
+  },
+  "colors": {
+    "background_primary": "#08090E",
+    "background_secondary": "#0F111A",
+    "background_tertiary": "#161926",
+    "background_card": "#121420",
+    "background_card_hover": "#1A1D2D",
+    "border_subtle": "#1E2235",
+    "border_medium": "#2D334B",
+    "border_accent": "rgba(16, 185, 129, 0.3)",
+    "primary_emerald": "#10B981",
+    "primary_emerald_hover": "#059669",
+    "primary_emerald_light": "#34D399",
+    "primary_emerald_bg": "rgba(16, 185, 129, 0.1)",
+    "accent_cyan": "#06B6D4",
+    "accent_blue": "#3B82F6",
+    "accent_amber": "#F59E0B",
+    "accent_rose": "#F43F5E",
+    "accent_purple": "#8B5CF6",
+    "text_primary": "#F8FAFC",
+    "text_secondary": "#94A3B8",
+    "text_muted": "#64748B",
+    "badge_actual": {
+      "bg": "rgba(59, 130, 246, 0.15)",
+      "text": "#60A5FA",
+      "border": "rgba(59, 130, 246, 0.3)"
+    },
+    "badge_estimated": {
+      "bg": "rgba(245, 158, 11, 0.15)",
+      "text": "#FBBF24",
+      "border": "rgba(245, 158, 11, 0.3)"
+    },
+    "badge_projected": {
+      "bg": "rgba(16, 185, 129, 0.15)",
+      "text": "#34D399",
+      "border": "rgba(16, 185, 129, 0.3)"
+    },
+    "badge_forecast": {
+      "bg": "rgba(139, 92, 246, 0.15)",
+      "text": "#C084FC",
+      "border": "rgba(139, 92, 246, 0.3)"
+    },
+    "badge_demo": {
+      "bg": "rgba(100, 116, 139, 0.2)",
+      "text": "#CBD5E1",
+      "border": "rgba(100, 116, 139, 0.4)"
+    }
+  },
+  "typography": {
+    "heading_font": "Plus Jakarta Sans, sans-serif",
+    "body_font": "Inter, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "scale": {
+      "h1": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-semibold tracking-tight",
+      "h4": "text-lg font-semibold",
+      "body_lg": "text-base font-normal leading-relaxed",
+      "body_md": "text-sm font-normal leading-normal",
+      "body_sm": "text-xs font-normal leading-normal",
+      "mono_metric": "font-mono font-bold tracking-tight"
+    }
+  },
+  "layout_and_navigation": {
+    "header": {
+      "style": "sticky top-0 z-40 bg-[#08090E]/90 backdrop-blur-md border-b border-[#1E2235] px-6 py-3 flex items-center justify-between",
+      "elements": [
+        "AHONIX Logo with Emerald Sparkle Icon",
+        "Demo Workspace Switcher (Northstar Goods - Shopify + Amazon)",
+        "Global Search Bar",
+        "Global 'Ask AHONIX ✦' Button",
+        "Action Center Pending Indicator Pill",
+        "Onboarding Progress Meter",
+        "Notifications & User Avatar"
+      ]
+    },
+    "sidebar": {
+      "style": "w-64 bg-[#0F111A] border-r border-[#1E2235] flex flex-col justify-between p-4 hidden md:flex min-h-screen",
+      "sections": [
+        { "name": "Overview", "icon": "LayoutDashboard", "path": "/overview" },
+        { "name": "AI Intelligence", "icon": "BrainCircuit", "path": "/ai-intelligence", "badge": "Business X-Ray" },
+        { "name": "Sales Analytics", "icon": "TrendingUp", "path": "/sales" },
+        { "name": "Product Health", "icon": "Package", "path": "/products" },
+        { "name": "Inventory Forecast", "icon": "Boxes", "path": "/inventory" },
+        { "name": "Marketing ROAS", "icon": "Target", "path": "/marketing" },
+        { "name": "Customers & LTV", "icon": "Users", "path": "/customers" },
+        { "name": "Operations & Logistics", "icon": "Truck", "path": "/operations" },
+        { "name": "Markets & Simulator", "icon": "Globe", "path": "/markets" },
+        { "name": "Action Center", "icon": "CheckSquare", "path": "/action-center", "badge": "7 Pending" },
+        { "name": "Settings & Integrations", "icon": "Settings", "path": "/settings" }
+      ]
+    }
+  },
+  "component_specifications": {
+    "kpi_card": {
+      "container": "bg-[#121420] border border-[#1E2235] rounded-xl p-5 hover:border-[#10B981]/40 transition-all shadow-sm relative overflow-hidden",
+      "header": "flex items-center justify-between text-xs font-medium text-[#94A3B8] mb-2",
+      "value": "text-2xl sm:text-3xl font-extrabold font-mono text-[#F8FAFC]",
+      "comparison": "flex items-center gap-2 mt-2 text-xs",
+      "trend_badge_positive": "inline-flex items-center text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-medium",
+      "trend_badge_negative": "inline-flex items-center text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded font-medium",
+      "meta": "Must show tag badge: [ACTUAL], [ESTIMATED], or [PROJECTED]"
+    },
+    "ai_insight_card": {
+      "container": "bg-[#161926] border border-[#1E2235] rounded-xl p-6 relative border-l-4",
+      "severity_levels": {
+        "critical": "border-l-rose-500 bg-rose-950/10",
+        "opportunity": "border-l-emerald-500 bg-emerald-950/10",
+        "warning": "border-l-amber-500 bg-amber-950/10"
+      },
+      "structure": [
+        "Header: Insight Category + Confidence Score Badge (e.g. '94% Confidence')",
+        "Title & Money Leak / Opportunity Impact Amount (e.g. '+$42,500/mo Revenue Opportunity')",
+        "Evidence Breakdown: 2-3 Bullet Points with Data Proof",
+        "Simulated Projection Chart / Micro-Visualizer",
+        "Action Buttons: [Simulate Impact] [Approve & Execute] [Ask AI Analyst]"
+      ]
+    },
+    "action_center_lifecycle": {
+      "stages": ["Detected", "Explained", "Simulated", "Awaiting Approval", "Approved", "Executed", "Measured"],
+      "stage_colors": {
+        "Detected": "bg-slate-800 text-slate-300",
+        "Explained": "bg-cyan-950/50 text-cyan-300 border-cyan-800",
+        "Simulated": "bg-purple-950/50 text-purple-300 border-purple-800",
+        "Awaiting Approval": "bg-amber-950/50 text-amber-300 border-amber-800 animate-pulse",
+        "Approved": "bg-blue-950/50 text-blue-300 border-blue-800",
+        "Executed": "bg-emerald-950/50 text-emerald-300 border-emerald-800",
+        "Measured": "bg-emerald-900 text-emerald-200 border-emerald-500"
+      }
+    },
+    "ask_ahonix_overlay": {
+      "style": "fixed inset-y-0 right-0 w-full max-w-xl bg-[#0F111A] border-l border-[#1E2235] shadow-2xl z-50 flex flex-col",
+      "input": "bg-[#161926] border border-[#2D334B] rounded-xl p-3 text-sm text-[#F8FAFC] focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] outline-none",
+      "quick_prompts": [
+        "Why did margin drop 3.2% yesterday?",
+        "Simulate increasing Meta ad spend by $5,000 next month",
+        "Which inventory items will stock out in under 14 days?",
+        "Show me true net profit after returns & shipping fees"
+      ]
+    },
+    "business_xray_scan": {
+      "scanning_animation": "Pulse ring visualizer with animated radar sweep effect in Emerald/Cyan tones",
+      "sections": ["Money Leaks", "Growth Opportunities", "Operational Risks", "Customer Churn Risks", "Inventory Bottlenecks"]
+    },
+    "true_profit_waterfall": {
+      "elements": ["Gross Revenue", "Discounts & Refunds", "Net Revenue", "COGS", "Shipping Costs", "Marketing Spend", "Payment Fees", "True Net Profit"]
+    }
+  },
+  "media_and_assets": {
+    "product_images": [
+      {
+        "url": "https://images.unsplash.com/photo-1539278383962-a7774385fa02?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHw0fHxlY29tbWVyY2UlMjBwcm9kdWN0fGVufDB8fHx8MTc4OTIyMDY0N3ww&ixlib=rb-4.1.0&q=85",
+        "category": "apparel_demo_product",
+        "description": "Mango Pants E-commerce Apparel"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1487014679447-9f8336841d58?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwzfHxlY29tbWVyY2UlMjBwcm9kdWN0fGVufDB8fHx8MTc4OTIyMDY0N3ww&ixlib=rb-4.1.0&q=85",
+        "category": "tech_demo_product",
+        "description": "MacBook Pro Accessories Setup"
+      }
+    ],
+    "avatars": [
+      {
+        "url": "https://images.unsplash.com/photo-1740252117044-2af197eea287?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODh8MHwxfHNlYXJjaHwxfHxzdG9yZSUyMG1lcmNoYW50JTIwYXZhdGFyfGVufDB8fHx8MTc4OTIyMDY0N3ww&ixlib=rb-4.1.0&q=85",
+        "category": "merchant_avatar",
+        "description": "Store Owner Avatar"
+      }
+    ]
+  },
+  "testing_requirements": {
+    "data_testid_convention": "kebab-case",
+    "required_test_ids": [
+      "nav-overview",
+      "nav-ai-intelligence",
+      "nav-sales",
+      "nav-products",
+      "nav-inventory",
+      "nav-marketing",
+      "nav-customers",
+      "nav-operations",
+      "nav-markets",
+      "nav-action-center",
+      "nav-settings",
+      "global-ask-ahonix-btn",
+      "ask-ahonix-input",
+      "ask-ahonix-submit",
+      "business-xray-scan-btn",
+      "onboarding-wizard-step",
+      "kpi-card-revenue",
+      "kpi-card-true-profit",
+      "action-center-approve-btn",
+      "action-center-simulate-btn",
+      "demo-store-selector"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Build a production-quality Javascript React app using .js / .jsx files with Tailwind CSS & Lucide React / Phosphor icons.",
+    "Implement the 10 core navigation views + Action Center + Onboarding flow + Global Ask AHONIX drawer overlay.",
+    "Use Emerald (#10B981) for primary actions, success indicators, and growth metrics.",
+    "Every metric card must clearly indicate if data is [ACTUAL], [ESTIMATED], [PROJECTED], [FORECAST], or [DEMO].",
+    "Add interactive state management for approving actions in Action Center, triggering the Business X-Ray scanner, and conversing with Ask AHONIX analyst.",
+    "Ensure all buttons, tabs, inputs, cards, and modal triggers have proper data-testid attributes."
+  ]
+}

@@ -1,0 +1,169 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 228 30% 4%;
+  --foreground: 210 40% 98%;
+  --card: 230 28% 10%;
+  --card-foreground: 210 40% 98%;
+  --popover: 230 30% 8%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 160 84% 39%;
+  --primary-foreground: 160 90% 8%;
+  --secondary: 230 20% 16%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 230 20% 14%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 230 22% 18%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 350 89% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 230 22% 16%;
+  --input: 230 22% 18%;
+  --ring: 160 84% 39%;
+  --radius: 0.75rem;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html,
+body {
+  background-color: #08090e;
+  color: #f8fafc;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.font-metric {
+  font-family: "JetBrains Mono", monospace;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.3);
+  color: #ecfdf5;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2d334b;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3d4560;
+}
+
+@keyframes ahonix-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: ahonix-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes ahonix-radar {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.animate-radar {
+  animation: ahonix-radar 2s ease-out infinite;
+}
+
+@keyframes ahonix-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-sweep {
+  animation: ahonix-spin 1.6s linear infinite;
+}
+
+@keyframes ahonix-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, #121420 25%, #1a1d2d 50%, #121420 75%);
+  background-size: 800px 100%;
+  animation: ahonix-shimmer 1.4s infinite linear;
+  border-radius: 8px;
+}
+
+.glass {
+  background: rgba(15, 17, 26, 0.75);
+  backdrop-filter: blur(16px);
+}
+
+.card-hover {
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+.card-hover:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+}
+
+.markdown h3 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #34d399;
+  margin: 14px 0 6px;
+  font-weight: 700;
+}
+.markdown p {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 4px 0;
+}
+.markdown ul {
+  margin: 4px 0;
+  padding-left: 16px;
+}
+.markdown li {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  list-style: disc;
+  margin: 2px 0;
+}
+.markdown strong {
+  color: #f8fafc;
+  font-weight: 600;
+}
