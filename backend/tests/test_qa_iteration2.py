@@ -4,11 +4,25 @@ import uuid
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://merchant-hub-721.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://ahonix-staging-backend.onrender.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 ADMIN_EMAIL = "alex@northstargoods.com"
 ADMIN_PASSWORD = "Ahonix2026!"
+
+
+def is_live_server_reachable():
+    try:
+        r = requests.get(f"{API}/health", timeout=5)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+pytestmark = pytest.mark.skipif(
+    not is_live_server_reachable(),
+    reason=f"Live backend server at {API} is not reachable. Set REACT_APP_BACKEND_URL to run live integration tests.",
+)
 
 
 @pytest.fixture(scope="module")

@@ -799,6 +799,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Filter empty strings and invalid wildcard origins from CORS origins
 raw_cors = os.environ.get("CORS_ORIGINS", "")
 _cors_origins = [o.strip().rstrip("/") for o in raw_cors.split(",") if o.strip() and o.strip() != "*"]
+frontend_origin = os.environ.get("FRONTEND_URL", "").strip().rstrip("/")
+if frontend_origin and frontend_origin != "*" and frontend_origin not in _cors_origins:
+    _cors_origins.append(frontend_origin)
 if not _cors_origins:
     # Default safe origins for development
     _cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]

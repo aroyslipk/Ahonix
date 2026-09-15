@@ -471,8 +471,10 @@ async def google_session(request: Request, response: Response):
                   "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
                   "created_at": datetime.now(timezone.utc).isoformat()}},
         upsert=True)
-    response.set_cookie("session_token", session_token, httponly=True, secure=True,
-                        samesite="none", max_age=604800, path="/")
+    secure = _is_production()
+    samesite = "none" if secure else "lax"
+    response.set_cookie("session_token", session_token, httponly=True, secure=secure,
+                        samesite=samesite, max_age=604800, path="/")
     return _public_user(user)
 
 
