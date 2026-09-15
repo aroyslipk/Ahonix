@@ -20,7 +20,8 @@ COPY requirements.txt .
 # Install dependencies
 # Handles public PyPI builds gracefully while supporting the full stack
 RUN grep -v "emergentintegrations" requirements.txt | grep -v "customer-assets.emergentagent.com" > /tmp/reqs-pypi.txt && \
-    pip install --no-cache-dir -r /tmp/reqs-pypi.txt litellm || pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r /tmp/reqs-pypi.txt || pip install --no-cache-dir -r requirements.txt
+
 
 # Copy backend source code
 COPY . .

@@ -56,12 +56,23 @@ export function AuthShell({ title, subtitle, children, footer }) {
   );
 }
 
-// REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 export function GoogleButton({ label = "Continue with Google" }) {
   const onClick = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    const isEmergent =
+      typeof window !== "undefined" &&
+      window.location.hostname.endsWith(".preview.emergentagent.com");
+
     const redirectUrl = window.location.origin + "/app/overview";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+
+    if (isEmergent) {
+      window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+      return;
+    }
+
+    // Direct Google OAuth flow for Staging and Production
+    const rawBackendUrl = process.env.REACT_APP_BACKEND_URL;
+    const backendUrl = rawBackendUrl ? rawBackendUrl.replace(/\/$/, "") : "";
+    window.location.href = `${backendUrl}/api/auth/google/login?redirect=${encodeURIComponent("/app/overview")}`;
   };
   return (
     <button

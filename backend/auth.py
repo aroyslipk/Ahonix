@@ -8,10 +8,12 @@ import logging
 import secrets
 from datetime import datetime, timezone, timedelta
 
+from urllib.parse import quote_plus, urlencode
 import bcrypt
 import jwt
 import httpx
 from fastapi import APIRouter, Request, Response, HTTPException, Depends
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from rate_limit import make_rate_limiter, check_rate_limit
@@ -23,6 +25,26 @@ JWT_ALGORITHM = "HS256"
 EMERGENT_SESSION_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
 
 _db = None
+
+
+def get_google_auth_config() -> dict:
+    """Load Google OAuth configuration from environment variables."""
+    app_url = os.environ.get("APP_URL", os.environ.get("BACKEND_URL", "http://localhost:8000")).rstrip("/")
+    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000").rstrip("/")
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", os.environ.get("GOOGLE_ADS_CLIENT_ID", "")).strip()
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", os.environ.get("GOOGLE_ADS_CLIENT_SECRET", "")).strip()
+    redirect_uri = os.environ.get(
+        "GOOGLE_AUTH_REDIRECT_URI",
+        f"{app_url}/api/auth/google/callback"
+    ).strip()
+
+    return {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri,
+        "frontend_url": frontend_url,
+    }
+
 
 
 def init_auth(db):
@@ -205,9 +227,186 @@ async def login(body: LoginBody, request: Request, response: Response, _rl=Depen
     return _public_user(user)
 
 
+@router.get("/google/login")
+async def google_login(request: Request, redirect: str = "/app/overview"):
+    """Initiate direct Google OAuth 2.0 flow for login/signup."""
+    cfg = get_google_auth_config()
+    if not cfg["client_id"]:
+        logger.error("Google OAuth login requested but GOOGLE_CLIENT_ID / GOOGLE_ADS_CLIENT_ID is not configured.")
+        raise HTTPException(
+            status_code=503,
+            detail="Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing)."
+        )
+
+    state = secrets.token_urlsafe(32)
+    now_utc = datetime.now(timezone.utc)
+    expires_at = now_utc + timedelta(seconds=900)
+
+    # Safe redirect destination guard
+    safe_redirect = redirect if redirect.startswith("/") else "/app/overview"
+
+    if _db is not None:
+        await _db.google_auth_states.replace_one(
+            {"state": state},
+            {
+                "state": state,
+                "redirect": safe_redirect,
+                "created_at": now_utc.isoformat(),
+                "expires_at": expires_at.isoformat(),
+            },
+            upsert=True,
+        )
+
+    params = {
+        "client_id": cfg["client_id"],
+        "redirect_uri": cfg["redirect_uri"],
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "online",
+        "state": state,
+        "prompt": "select_account",
+    }
+    auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
+    return RedirectResponse(url=auth_url, status_code=302)
+
+
+@router.get("/google/callback")
+async def google_callback(request: Request):
+    """Handle Google OAuth 2.0 callback, exchange code, upsert user, create session, and redirect."""
+    cfg = get_google_auth_config()
+    frontend_url = cfg["frontend_url"]
+
+    params = dict(request.query_params)
+    error = params.get("error")
+    if error:
+        logger.warning("Google OAuth consent cancelled or error: %s", error)
+        return RedirectResponse(url=f"{frontend_url}/login?error={quote_plus(error)}")
+
+    code = params.get("code")
+    state = params.get("state")
+    if not code or not state:
+        logger.warning("Google OAuth callback missing code or state")
+        return RedirectResponse(url=f"{frontend_url}/login?error=missing_parameters")
+
+    target_path = "/app/overview"
+    if _db is not None:
+        state_doc = await _db.google_auth_states.find_one({"state": state})
+        if not state_doc:
+            logger.warning("Google OAuth invalid or expired CSRF state: %s", state)
+            return RedirectResponse(url=f"{frontend_url}/login?error=invalid_state")
+        target_path = state_doc.get("redirect") or "/app/overview"
+        await _db.google_auth_states.delete_one({"state": state})
+
+    # Exchange authorization code for tokens
+    async with httpx.AsyncClient(timeout=15) as cx:
+        token_res = await cx.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code": code,
+                "client_id": cfg["client_id"],
+                "client_secret": cfg["client_secret"],
+                "redirect_uri": cfg["redirect_uri"],
+                "grant_type": "authorization_code",
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+    if token_res.status_code != 200:
+        logger.error("Google OAuth token exchange failed (%s): %s", token_res.status_code, token_res.text)
+        return RedirectResponse(url=f"{frontend_url}/login?error=token_exchange_failed")
+
+    token_data = token_res.json()
+    google_access_token = token_data.get("access_token")
+    if not google_access_token:
+        return RedirectResponse(url=f"{frontend_url}/login?error=no_access_token")
+
+    # Fetch user profile from OpenID userinfo
+    async with httpx.AsyncClient(timeout=15) as cx:
+        userinfo_res = await cx.get(
+            "https://openidconnect.googleapis.com/v1/userinfo",
+            headers={"Authorization": f"Bearer {google_access_token}"},
+        )
+
+    if userinfo_res.status_code != 200:
+        logger.error("Failed to fetch Google user profile (%s)", userinfo_res.status_code)
+        return RedirectResponse(url=f"{frontend_url}/login?error=userinfo_failed")
+
+    profile = userinfo_res.json()
+    email = (profile.get("email") or "").lower().strip()
+    if not email:
+        return RedirectResponse(url=f"{frontend_url}/login?error=email_not_provided")
+
+    name = profile.get("name") or profile.get("given_name") or email.split("@")[0]
+    picture = profile.get("picture")
+
+    now_utc = datetime.now(timezone.utc)
+    user = await _db.users.find_one({"email": email}) if _db is not None else None
+    if not user:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        user = {
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "auth_provider": "google",
+            "onboarding_completed": False,
+            "active_workspace_id": None,
+            "created_at": now_utc.isoformat(),
+        }
+        if _db is not None:
+            await _db.users.insert_one(user)
+        logger.info("Created new Google OAuth user %s (%s)", user_id, mask_email(email))
+    else:
+        update_fields = {}
+        if picture and user.get("picture") != picture:
+            update_fields["picture"] = picture
+        if not user.get("name") and name:
+            update_fields["name"] = name
+        if update_fields and _db is not None:
+            await _db.users.update_one({"email": email}, {"$set": update_fields})
+        logger.info("Google OAuth login for existing user %s (%s)", user["user_id"], mask_email(email))
+
+    access_token = create_access_token(user["user_id"], email)
+    refresh_token = create_refresh_token(user["user_id"])
+    session_token = secrets.token_urlsafe(32)
+
+    if _db is not None:
+        await _db.user_sessions.update_one(
+            {"session_token": session_token},
+            {
+                "$set": {
+                    "user_id": user["user_id"],
+                    "session_token": session_token,
+                    "email": email,
+                    "expires_at": (now_utc + timedelta(days=7)).isoformat(),
+                    "created_at": now_utc.isoformat(),
+                }
+            },
+            upsert=True,
+        )
+
+    dest = target_path if target_path.startswith("/") else f"/{target_path}"
+    redirect_url = f"{frontend_url}{dest}#session_id={session_token}"
+
+    redir = RedirectResponse(url=redirect_url, status_code=302)
+    _set_jwt_cookies(redir, access_token, refresh_token)
+    redir.set_cookie(
+        "session_token",
+        session_token,
+        httponly=True,
+        secure=_is_production(),
+        samesite="none" if _is_production() else "lax",
+        max_age=604800,
+        path="/",
+    )
+    return redir
+
+
 @router.post("/session")
 async def google_session(request: Request, response: Response):
-    """Exchange Emergent OAuth session_id for a persistent session_token."""
+    """Exchange OAuth session_id for a persistent session.
+    Checks internal user_sessions first, falls back to Emergent session proxy.
+    """
     session_id = request.headers.get("X-Session-ID")
     if not session_id:
         body = await request.json()
@@ -215,6 +414,35 @@ async def google_session(request: Request, response: Response):
     if not session_id:
         raise HTTPException(status_code=400, detail="Missing session_id")
 
+    # 1) Check local database user_sessions (AHONIX OAuth session)
+    if _db is not None:
+        sess = await _db.user_sessions.find_one({"session_token": session_id}, {"_id": 0})
+        if sess:
+            expires_at = sess.get("expires_at")
+            if isinstance(expires_at, str):
+                expires_at = datetime.fromisoformat(expires_at)
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at >= datetime.now(timezone.utc):
+                user = await _db.users.find_one({"user_id": sess["user_id"]}, {"_id": 0})
+                if user:
+                    _set_jwt_cookies(
+                        response,
+                        create_access_token(user["user_id"], user["email"]),
+                        create_refresh_token(user["user_id"]),
+                    )
+                    response.set_cookie(
+                        "session_token",
+                        session_id,
+                        httponly=True,
+                        secure=_is_production(),
+                        samesite="none" if _is_production() else "lax",
+                        max_age=604800,
+                        path="/",
+                    )
+                    return _public_user(user)
+
+    # 2) Fallback to Emergent OAuth proxy for legacy preview environments
     async with httpx.AsyncClient(timeout=15) as cx:
         r = await cx.get(EMERGENT_SESSION_URL, headers={"X-Session-ID": session_id})
     if r.status_code != 200:
@@ -246,6 +474,7 @@ async def google_session(request: Request, response: Response):
     response.set_cookie("session_token", session_token, httponly=True, secure=True,
                         samesite="none", max_age=604800, path="/")
     return _public_user(user)
+
 
 
 @router.get("/me")

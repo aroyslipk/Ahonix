@@ -48,18 +48,29 @@ function AuthCallback() {
     if (processed.current) return;
     processed.current = true;
     const hash = location.hash || "";
-    const sid = new URLSearchParams(hash.replace(/^#/, "")).get("session_id");
+    const search = location.search || "";
+    const sid =
+      new URLSearchParams(hash.replace(/^#/, "")).get("session_id") ||
+      new URLSearchParams(search).get("session_id");
+
     (async () => {
       try {
-        const { data } = await api.post("/auth/session", { session_id: sid });
-        setUser(data);
-        window.history.replaceState(null, "", window.location.pathname);
-        navigate(data.onboarding_completed ? "/app/overview" : "/onboarding", { replace: true });
+        if (sid) {
+          const { data } = await api.post("/auth/session", { session_id: sid });
+          setUser(data);
+          window.history.replaceState(null, "", window.location.pathname);
+          navigate(data.onboarding_completed ? "/app/overview" : "/onboarding", { replace: true });
+        } else {
+          // Direct cookie verification fallback
+          const { data } = await api.get("/auth/me");
+          setUser(data);
+          navigate(data.onboarding_completed ? "/app/overview" : "/onboarding", { replace: true });
+        }
       } catch {
         navigate("/login", { replace: true });
       }
     })();
-  }, [location.hash, navigate, setUser]);
+  }, [location.hash, location.search, navigate, setUser]);
 
   return <FullLoader />;
 }
@@ -81,7 +92,13 @@ function PublicOnly({ children }) {
 
 function AppRouter() {
   const location = useLocation();
-  if (location.hash?.includes("session_id=")) return <AuthCallback />;
+  if (
+    location.hash?.includes("session_id=") ||
+    location.search?.includes("session_id=") ||
+    location.pathname === "/auth/callback"
+  ) {
+    return <AuthCallback />;
+  }
 
   return (
     <Routes>
@@ -90,6 +107,7 @@ function AppRouter() {
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route

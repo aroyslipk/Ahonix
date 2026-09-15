@@ -20,8 +20,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // If returning from Emergent OAuth callback, let AuthCallback establish the session first.
-    if (window.location.hash?.includes("session_id=")) {
+    // If returning from OAuth callback, let AuthCallback establish/verify the session first.
+    if (
+      window.location.hash?.includes("session_id=") ||
+      window.location.search?.includes("session_id=") ||
+      window.location.pathname === "/auth/callback"
+    ) {
       setLoading(false);
       return;
     }

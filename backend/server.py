@@ -30,6 +30,14 @@ import shopify_sync
 import meta_integration
 import google_ads_integration
 import marketing_cron
+import ai_analyst
+from ai_analyst import (
+    SYSTEM_PROMPT,
+    AIProviderNotConfiguredError,
+    AIProviderError,
+    stream_analyst_response,
+    get_active_ai_provider,
+)
 
 mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 db_name = os.environ.get("DB_NAME", "ahonix_db")
@@ -691,6 +699,12 @@ An estimated or projected figure, clearly labelled as Estimated/Projected (this 
 Keep it tight and executive. Use the currency and figures from the snapshot. Do not use tables."""
 
 
+@api.get("/ask/status")
+async def ask_status(user: dict = Depends(get_current_user)):
+    """Return configured AI provider information (without exposing any secret keys)."""
+    return get_active_ai_provider()
+
+
 @api.post("/ask")
 async def ask_ahonix(body: AskBody, user: dict = Depends(get_current_user), _rl=Depends(ask_limiter)):
     # Reject whitespace-only questions
@@ -700,37 +714,45 @@ async def ask_ahonix(body: AskBody, user: dict = Depends(get_current_user), _rl=
     session_id = body.session_id or f"ask_{uuid.uuid4().hex[:10]}"
     context = _context_summary(data)
 
-    await db.chat_messages.insert_one({
-        "user_id": user["user_id"], "workspace_id": ws["workspace_id"],
-        "session_id": session_id, "role": "user", "content": body.question,
-        "created_at": datetime.now(timezone.utc).isoformat()})
-
-    from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
-
-    chat = LlmChat(
-        api_key=os.environ["EMERGENT_LLM_KEY"],
-        session_id=session_id,
-        system_message=SYSTEM_PROMPT + "\n\nMERCHANT DATA SNAPSHOT:\n" + context,
-    ).with_model("anthropic", "claude-sonnet-4-6")
+    try:
+        await db.chat_messages.insert_one({
+            "user_id": user["user_id"], "workspace_id": ws["workspace_id"],
+            "session_id": session_id, "role": "user", "content": body.question,
+            "created_at": datetime.now(timezone.utc).isoformat()})
+    except Exception as e:
+        logger.warning("Could not persist user chat message: %s", type(e).__name__)
 
     async def gen():
         collected = []
         try:
-            async for ev in chat.stream_message(UserMessage(text=body.question)):
-                if isinstance(ev, TextDelta):
-                    collected.append(ev.content)
-                    yield f"data: {json.dumps({'delta': ev.content})}\n\n"
-                elif isinstance(ev, StreamDone):
-                    break
+            async for delta in stream_analyst_response(
+                question=body.question,
+                context=context,
+                session_id=session_id,
+            ):
+                collected.append(delta)
+                yield f"data: {json.dumps({'delta': delta})}\n\n"
+        except AIProviderNotConfiguredError as e:
+            logger.warning("Ask AHONIX unconfigured: %s", e)
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        except AIProviderError as e:
+            logger.error("Ask AHONIX provider error: %s", e)
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
         except Exception as e:
-            logger.exception("ask stream error")
+            logger.exception("ask stream error (%s)", type(e).__name__)
             yield f"data: {json.dumps({'error': 'An internal error occurred. Please try again.'})}\n\n"
+
         full = "".join(collected)
-        await db.chat_messages.insert_one({
-            "user_id": user["user_id"], "workspace_id": ws["workspace_id"],
-            "session_id": session_id, "role": "assistant", "content": full,
-            "created_at": datetime.now(timezone.utc).isoformat()})
+        if full:
+            try:
+                await db.chat_messages.insert_one({
+                    "user_id": user["user_id"], "workspace_id": ws["workspace_id"],
+                    "session_id": session_id, "role": "assistant", "content": full,
+                    "created_at": datetime.now(timezone.utc).isoformat()})
+            except Exception as e:
+                logger.warning("Could not persist assistant chat message: %s", type(e).__name__)
         yield f"data: {json.dumps({'done': True, 'session_id': session_id})}\n\n"
+
 
     return StreamingResponse(gen(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
@@ -822,6 +844,8 @@ async def startup():
         await db.meta_oauth_states.create_index("expires_at", expireAfterSeconds=900)
         await db.google_ads_oauth_states.create_index("state", unique=True)
         await db.google_ads_oauth_states.create_index("expires_at", expireAfterSeconds=900)
+        await db.google_auth_states.create_index("state", unique=True)
+        await db.google_auth_states.create_index("expires_at", expireAfterSeconds=900)
         await db.marketing_campaigns.create_index(
             [("workspace_id", 1), ("platform", 1), ("account_id", 1), ("campaign_id", 1)],
             unique=True,
