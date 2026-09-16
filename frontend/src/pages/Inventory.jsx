@@ -20,8 +20,29 @@ export default function Inventory() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
-  const inv = data.inventory;
+  const cur = data?.workspace?.currency || "USD";
+  const inv = data?.inventory;
+  const isDemo = Boolean(data?.workspace?.is_demo);
+  const items = inv?.items || [];
+  const fastMoving = inv?.fast_moving || [];
+  const slowMoving = inv?.slow_moving || [];
+
+  if (!isDemo && (!inv || items.length === 0)) {
+    return (
+      <div className="space-y-8" data-testid="inventory-empty-state">
+        <SectionHeader
+          title="Inventory Diagnostics & Cover"
+          subtitle="Stock runout modeling, velocity forecasting, and replenishment optimization"
+          icon={Boxes}
+        />
+        <EmptyWorkspace
+          name={data?.workspace?.name}
+          title="No inventory telemetry yet"
+          description="Connect your Shopify store or warehouse catalog in Settings to model stock runout velocity, low cover alerts, and replenishment POs."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8" data-testid="inventory-page">
@@ -32,33 +53,41 @@ export default function Inventory() {
       />
 
       <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4 sm:p-5"><Stat label="Active Stock Value" value={fmtCurrency(inv.total_value, cur)} /></Card>
-        <Card className="p-4 sm:p-5"><Stat label="Total Warehouse Units" value={fmtNumber(inv.total_units)} /></Card>
-        <Card className="border-rose-500/30 bg-rose-950/15 p-4 sm:p-5"><Stat label="Immediate Stock-out Risk" value={inv.critical_count} sub="Requires immediate PO" /></Card>
-        <Card className="border-amber-500/30 bg-amber-950/15 p-4 sm:p-5"><Stat label="Low Velocity Cover" value={inv.low_count} sub="&lt; 14 days runout" /></Card>
+        <Card className="p-4 sm:p-5"><Stat label="Active Stock Value" value={fmtCurrency(inv?.total_value || 0, cur)} /></Card>
+        <Card className="p-4 sm:p-5"><Stat label="Total Warehouse Units" value={fmtNumber(inv?.total_units || 0)} /></Card>
+        <Card className="border-rose-500/30 bg-rose-950/15 p-4 sm:p-5"><Stat label="Immediate Stock-out Risk" value={inv?.critical_count || 0} sub="Requires immediate PO" /></Card>
+        <Card className="border-amber-500/30 bg-amber-950/15 p-4 sm:p-5"><Stat label="Low Velocity Cover" value={inv?.low_count || 0} sub="&lt; 14 days runout" /></Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5 sm:p-6">
           <SectionHeader title="High Turnover Catalog" subtitle="Highest units depleted per operating day" />
           <div className="mt-4 space-y-2">
-            {inv.fast_moving.map((n) => (
-              <div key={n} className="flex items-center gap-2.5 rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-2.5 text-xs text-[#CBD5E1]">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                <span className="font-medium text-[#F8FAFC]">{n}</span>
-              </div>
-            ))}
+            {fastMoving.length === 0 ? (
+              <p className="text-xs text-[#64748B] py-3 text-center">No fast-moving items identified.</p>
+            ) : (
+              fastMoving.map((n) => (
+                <div key={n} className="flex items-center gap-2.5 rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-2.5 text-xs text-[#CBD5E1]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="font-medium text-[#F8FAFC]">{n}</span>
+                </div>
+              ))
+            )}
           </div>
         </Card>
         <Card className="p-5 sm:p-6">
           <SectionHeader title="Capital Traps / Slow Turn" subtitle="Lowest units depleted per operating day" />
           <div className="mt-4 space-y-2">
-            {inv.slow_moving.map((n) => (
-              <div key={n} className="flex items-center gap-2.5 rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-2.5 text-xs text-[#CBD5E1]">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                <span className="font-medium text-[#CBD5E1]">{n}</span>
-              </div>
-            ))}
+            {slowMoving.length === 0 ? (
+              <p className="text-xs text-[#64748B] py-3 text-center">No slow-moving capital traps identified.</p>
+            ) : (
+              slowMoving.map((n) => (
+                <div key={n} className="flex items-center gap-2.5 rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-2.5 text-xs text-[#CBD5E1]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                  <span className="font-medium text-[#CBD5E1]">{n}</span>
+                </div>
+              ))
+            )}
           </div>
         </Card>
       </div>
@@ -82,16 +111,16 @@ export default function Inventory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#121A15]">
-              {inv.items.map((it, i) => {
+              {items.map((it, i) => {
                 const st = STATUS[it.status] || STATUS.healthy;
                 return (
                   <tr key={i} className="hover:bg-[#0E1713] transition-colors">
                     <td className="px-5 py-3.5 font-medium text-[#F8FAFC]">{it.name}</td>
-                    <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtNumber(it.stock)}</td>
-                    <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{it.daily_demand}/day</td>
-                    <td className="px-5 py-3.5 text-right font-metric font-bold text-[#F8FAFC]">{it.days_left}d</td>
-                    <td className="px-5 py-3.5 text-right text-[#94A3B8] font-metric">{it.stockout_date}</td>
-                    <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">+{fmtNumber(it.reorder_qty)}</td>
+                    <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtNumber(it.stock || 0)}</td>
+                    <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{it.daily_demand || 0}/day</td>
+                    <td className="px-5 py-3.5 text-right font-metric font-bold text-[#F8FAFC]">{it.days_left || 0}d</td>
+                    <td className="px-5 py-3.5 text-right text-[#94A3B8] font-metric">{it.stockout_date || "—"}</td>
+                    <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">+{fmtNumber(it.reorder_qty || 0)}</td>
                     <td className="px-5 py-3.5 text-right">
                       <Badge className={`border text-[10px] font-semibold uppercase tracking-wider ${st.cls}`}>{st.label}</Badge>
                     </td>

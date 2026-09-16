@@ -26,9 +26,31 @@ export default function ProductDetail() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
-  const p = data.product;
-  const weekly = p.weekly.map((v, i) => ({ week: `W${i + 1}`, revenue: v }));
+  const cur = data?.workspace?.currency || "USD";
+  const p = data?.product;
+
+  if (!p) {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => navigate("/app/products")}
+          className="flex items-center gap-1.5 text-xs text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
+          data-testid="product-back"
+        >
+          <ArrowLeft size={14} /> Return to catalog overview
+        </button>
+        <EmptyWorkspace
+          name={data?.workspace?.name}
+          title="Product not found"
+          description="This SKU does not exist in the active catalog or has not been synced yet."
+          actionLabel="View Catalog"
+          actionPath="/app/products"
+        />
+      </div>
+    );
+  }
+
+  const weekly = (p.weekly || []).map((v, i) => ({ week: `W${i + 1}`, revenue: v }));
 
   return (
     <div className="space-y-8" data-testid="product-detail-page">
@@ -38,23 +60,23 @@ export default function ProductDetail() {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <HealthRing score={p.health.score} size={64} />
+          <HealthRing score={p.health?.score ?? 50} size={64} />
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="font-display text-2xl font-bold text-[#F8FAFC]">{p.name}</h1>
+              <h1 className="font-display text-2xl font-bold text-[#F8FAFC]">{p.name || "Untitled Product"}</h1>
               {p.cogs_status && <ValueBadge kind={p.cogs_status} />}
             </div>
-            <p className="mt-1 text-xs text-[#64748B]">{p.category} · {p.channel} · Health Index {p.health.score}/100</p>
+            <p className="mt-1 text-xs text-[#64748B]">{p.category || "General"} · {p.channel || "Direct"} · Health Index {p.health?.score ?? 50}/100</p>
           </div>
         </div>
-        <Button onClick={() => openAsk(`Analyze unit economics and profit levers for ${p.name}`)} className="bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400 text-xs">
+        <Button onClick={() => openAsk(`Analyze unit economics and profit levers for ${p.name || "this product"}`)} className="bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400 text-xs">
           <MessageSquare size={13} className="mr-1.5" /> Ask AHONIX
         </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <Card className="p-4 sm:p-5"><Stat label="Units sold" value={fmtNumber(p.units)} /></Card>
-        <Card className="p-4 sm:p-5"><Stat label="Gross revenue" value={fmtCurrency(p.revenue, cur)} /></Card>
+        <Card className="p-4 sm:p-5"><Stat label="Units sold" value={fmtNumber(p.units || 0)} /></Card>
+        <Card className="p-4 sm:p-5"><Stat label="Gross revenue" value={fmtCurrency(p.revenue || 0, cur)} /></Card>
         <Card className="p-4 sm:p-5">
           <Stat
             label="Unit COGS"
@@ -62,8 +84,8 @@ export default function ProductDetail() {
             sub={p.cogs_status ? `Source: ${p.cogs_status}` : undefined}
           />
         </Card>
-        <Card className="p-4 sm:p-5"><Stat label="True net profit" value={fmtCurrency(p.true_profit, cur)} sub={`${p.margin}% margin`} /></Card>
-        <Card className="col-span-2 sm:col-span-1 p-4 sm:p-5"><Stat label="Return rate" value={`${p.return_rate}%`} /></Card>
+        <Card className="p-4 sm:p-5"><Stat label="True net profit" value={fmtCurrency(p.true_profit || 0, cur)} sub={`${p.margin || 0}% margin`} /></Card>
+        <Card className="col-span-2 sm:col-span-1 p-4 sm:p-5"><Stat label="Return rate" value={`${p.return_rate || 0}%`} /></Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -75,7 +97,7 @@ export default function ProductDetail() {
           <SectionHeader title="Multidimensional Health" subtitle="Audited performance pillars" />
           <div className="mt-5 space-y-3.5">
             {DIMS.map(([k, label]) => {
-              const v = p.health.breakdown[k];
+              const v = p.health?.breakdown?.[k] ?? 50;
               const color = v >= 70 ? "#00E599" : v >= 45 ? "#F59E0B" : "#F43F5E";
               return (
                 <div key={k}>

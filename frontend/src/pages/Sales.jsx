@@ -18,8 +18,37 @@ export default function Sales() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
-  const s = data.sales;
+  const cur = data?.workspace?.currency || "USD";
+  const s = data?.sales || {};
+  const isDemo = Boolean(data?.workspace?.is_demo);
+  const byChannel = s.by_channel || [];
+  const byCountry = s.by_country || [];
+  const weekly = s.weekly || [];
+  const topProducts = s.top_products || [];
+
+  const hasSalesData =
+    isDemo ||
+    (s.orders && s.orders > 0) ||
+    (s.revenue && s.revenue > 0) ||
+    byChannel.length > 0 ||
+    topProducts.length > 0;
+
+  if (!hasSalesData) {
+    return (
+      <div className="space-y-8" data-testid="sales-empty-state">
+        <SectionHeader
+          title="Sales Velocity"
+          subtitle="Channel attribution, order volume, and unit economics across all markets"
+          icon={TrendingUp}
+        />
+        <EmptyWorkspace
+          name={data?.workspace?.name}
+          title="No sales data recorded yet"
+          description="Connect your Shopify store or sales channels in Settings to start tracking order velocity, average order values, and geographic distribution."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8" data-testid="sales-page">
@@ -47,21 +76,21 @@ export default function Sales() {
             <span className="text-xs uppercase tracking-wider text-[#64748B]">Total Revenue</span>
             <ValueBadge kind="ACTUAL" />
           </div>
-          <p className="font-metric text-2xl font-bold text-[#F8FAFC]">{fmtCurrency(s.revenue, cur)}</p>
+          <p className="font-metric text-2xl font-bold text-[#F8FAFC]">{fmtCurrency(s.revenue || 0, cur)}</p>
         </Card>
         <Card className="p-5">
           <div className="mb-2 flex justify-between">
             <span className="text-xs uppercase tracking-wider text-[#64748B]">Total Orders</span>
             <ValueBadge kind="ACTUAL" />
           </div>
-          <p className="font-metric text-2xl font-bold text-[#F8FAFC]">{fmtNumber(s.orders)}</p>
+          <p className="font-metric text-2xl font-bold text-[#F8FAFC]">{fmtNumber(s.orders || 0)}</p>
         </Card>
         <Card className="p-5">
           <div className="mb-2 flex justify-between">
             <span className="text-xs uppercase tracking-wider text-[#64748B]">Avg Order Value</span>
             <ValueBadge kind="ACTUAL" />
           </div>
-          <p className="font-metric text-2xl font-bold text-[#F8FAFC]">{fmtCurrency(s.aov, cur)}</p>
+          <p className="font-metric text-2xl font-bold text-[#F8FAFC]">{fmtCurrency(s.aov || 0, cur)}</p>
         </Card>
       </div>
 
@@ -71,7 +100,7 @@ export default function Sales() {
           subtitle="12-week velocity baseline · KPI totals cover last 4 weeks"
         />
         <div className="mt-5">
-          <BarSeries data={s.weekly} dataKey={metric} xKey="week" currency={cur} prefix={metric === "orders" ? "number" : "currency"} />
+          <BarSeries data={weekly} dataKey={metric} xKey="week" currency={cur} prefix={metric === "orders" ? "number" : "currency"} />
         </div>
       </Card>
 
@@ -79,21 +108,25 @@ export default function Sales() {
         <Card className="p-5 sm:p-6">
           <SectionHeader title="Channel Breakdown" subtitle="Revenue attribution across active sales touchpoints" />
           <div className="mt-5 space-y-4">
-            {s.by_channel.map((c, i) => {
-              const max = Math.max(...s.by_channel.map((x) => x.revenue));
-              return (
-                <div key={c.channel}>
-                  <div className="mb-1.5 flex justify-between text-xs">
-                    <span className="font-medium text-[#CBD5E1]">{c.channel}</span>
-                    <span className="font-metric font-bold text-[#F8FAFC]">{fmtCurrency(c.revenue, cur)}</span>
+            {byChannel.length === 0 ? (
+              <p className="text-xs text-[#64748B] py-4 text-center">No channel data available.</p>
+            ) : (
+              byChannel.map((c, i) => {
+                const max = Math.max(...byChannel.map((x) => x.revenue || 0), 1);
+                return (
+                  <div key={c.channel || i}>
+                    <div className="mb-1.5 flex justify-between text-xs">
+                      <span className="font-medium text-[#CBD5E1]">{c.channel}</span>
+                      <span className="font-metric font-bold text-[#F8FAFC]">{fmtCurrency(c.revenue || 0, cur)}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-[#070C0A] border border-[#16221B]">
+                      <div className="h-full rounded-full" style={{ width: `${((c.revenue || 0) / max) * 100}%`, background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                    </div>
+                    <p className="mt-1 text-[11px] text-[#64748B] font-metric">{fmtNumber(c.orders || 0)} verified orders</p>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[#070C0A] border border-[#16221B]">
-                    <div className="h-full rounded-full" style={{ width: `${(c.revenue / max) * 100}%`, background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
-                  </div>
-                  <p className="mt-1 text-[11px] text-[#64748B] font-metric">{fmtNumber(c.orders)} verified orders</p>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </Card>
 
@@ -101,17 +134,17 @@ export default function Sales() {
           <SectionHeader title="Geographic Distribution" subtitle="Top merchant delivery destinations" />
           <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-6">
             <div className="w-full sm:w-1/2 flex justify-center">
-              <Donut data={s.by_country.map((c) => ({ name: c.country, share: c.revenue }))} dataKey="share" />
+              <Donut data={byCountry.map((c) => ({ name: c.country, share: c.revenue || 0 }))} dataKey="share" />
             </div>
             <div className="flex-1 space-y-2.5">
-              {s.by_country.map((c, i) => (
-                <div key={c.code} className="flex items-center justify-between text-xs">
+              {byCountry.map((c, i) => (
+                <div key={c.code || c.country || i} className="flex items-center justify-between text-xs">
                   <span className="flex items-center gap-2 text-[#CBD5E1]">
                     <span className="h-2 w-2 rounded-full" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
                     <span>{c.flag}</span>
                     <span>{c.country}</span>
                   </span>
-                  <span className="font-metric font-semibold text-[#94A3B8]">{fmtCurrency(c.revenue, cur, true)}</span>
+                  <span className="font-metric font-semibold text-[#94A3B8]">{fmtCurrency(c.revenue || 0, cur, true)}</span>
                 </div>
               ))}
             </div>
@@ -134,12 +167,12 @@ export default function Sales() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#121A15]">
-              {s.top_products.map((p, i) => (
-                <tr key={i} className="hover:bg-[#0E1713] transition-colors">
+              {topProducts.map((p, i) => (
+                <tr key={p.id || i} className="hover:bg-[#0E1713] transition-colors">
                   <td className="px-5 py-3.5 font-medium text-[#F8FAFC]">{p.name}</td>
-                  <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtNumber(p.units)}</td>
-                  <td className="px-5 py-3.5 text-right font-metric font-semibold text-[#CBD5E1]">{fmtCurrency(p.revenue, cur)}</td>
-                  <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">{p.margin}%</td>
+                  <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtNumber(p.units || 0)}</td>
+                  <td className="px-5 py-3.5 text-right font-metric font-semibold text-[#CBD5E1]">{fmtCurrency(p.revenue || 0, cur)}</td>
+                  <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">{p.margin || 0}%</td>
                 </tr>
               ))}
             </tbody>
@@ -148,5 +181,6 @@ export default function Sales() {
       </div>
     </div>
   );
+
 }
 

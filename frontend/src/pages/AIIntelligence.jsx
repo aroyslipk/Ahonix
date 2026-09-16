@@ -90,8 +90,12 @@ export default function AIIntelligence() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
-  const insights = data.insights;
+  const cur = data?.workspace?.currency || "USD";
+  const rawInsights = data?.insights;
+  const insights =
+    rawInsights && typeof rawInsights === "object" && !Array.isArray(rawInsights)
+      ? rawInsights
+      : {};
   const total = GROUPS.reduce((n, g) => n + (insights[g.key]?.length || 0), 0);
 
   const onAction = (insight) => {
@@ -186,6 +190,15 @@ export default function AIIntelligence() {
               </div>
             );
           })}
+
+          {total === 0 && (
+            <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-8 text-center">
+              <p className="text-sm font-semibold text-[#CBD5E1]">No operational anomalies detected</p>
+              <p className="mt-1 text-xs text-[#64748B]">
+                All active streams are operating within baseline parameters. Connect additional sales or ad channels in Settings to deepen automated diagnostics.
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-center pt-2">
             <Button

@@ -15,9 +15,33 @@ export default function Operations() {
   if (ops.isError) return <ErrorState onRetry={ops.refetch} />;
   if (ops.data?.empty) return <EmptyWorkspace name={ops.data.workspace?.name} />;
 
-  const cur = ops.data.workspace.currency;
-  const o = ops.data.operations;
+  const cur = ops.data?.workspace?.currency || "USD";
+  const o = ops.data?.operations;
   const r = ret.data?.returns;
+  const isDemo = Boolean(ops.data?.workspace?.is_demo);
+
+  if (!isDemo && (!o || !o.carriers || o.carriers.length === 0)) {
+    return (
+      <div className="space-y-8" data-testid="operations-empty-state">
+        <SectionHeader
+          title="Fulfillment & Operating Telemetry"
+          subtitle="Carrier margin drag, payment gateway capture rates, and reverse logistics friction"
+          icon={Truck}
+        />
+        <EmptyWorkspace
+          name={ops.data?.workspace?.name}
+          title="No operations telemetry yet"
+          description="Connect your Shopify store or logistics partner in Settings to analyze carrier SLA performance, gateway fees, and returns drag."
+        />
+      </div>
+    );
+  }
+
+  const carriers = o?.carriers || [];
+  const payments = o?.payments || {};
+  const paymentMethods = payments.methods || [];
+  const byProduct = r?.by_product || [];
+  const byReason = r?.by_reason || [];
 
   return (
     <div className="space-y-8" data-testid="operations-page">
@@ -55,10 +79,10 @@ export default function Operations() {
         {/* SHIPPING */}
         <TabsContent value="shipping" className="mt-6 space-y-6">
           <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="p-4 sm:p-5"><Stat label="Total Dispatched" value={fmtNumber(o.shipments)} /></Card>
-            <Card className="p-4 sm:p-5"><Stat label="Average Transit" value={`${o.avg_delivery_days} days`} /></Card>
-            <Card className="p-4 sm:p-5"><Stat label="Delivery Failure Rate" value={`${o.failed_delivery_rate}%`} /></Card>
-            <Card className="p-4 sm:p-5"><Stat label="Freight Cost / Unit" value={fmtCurrency(o.avg_shipping_cost, cur)} /></Card>
+            <Card className="p-4 sm:p-5"><Stat label="Total Dispatched" value={fmtNumber(o?.shipments || 0)} /></Card>
+            <Card className="p-4 sm:p-5"><Stat label="Average Transit" value={`${o?.avg_delivery_days || 0} days`} /></Card>
+            <Card className="p-4 sm:p-5"><Stat label="Delivery Failure Rate" value={`${o?.failed_delivery_rate || 0}%`} /></Card>
+            <Card className="p-4 sm:p-5"><Stat label="Freight Cost / Unit" value={fmtCurrency(o?.avg_shipping_cost || 0, cur)} /></Card>
           </div>
 
           <div className="rounded-xl border border-[#16221B] bg-[#0B110E] overflow-hidden">
@@ -78,14 +102,14 @@ export default function Operations() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#121A15]">
-                  {o.carriers.map((cr) => (
+                  {carriers.map((cr) => (
                     <tr key={cr.name} className="hover:bg-[#0E1713] transition-colors">
                       <td className="px-5 py-3.5 font-medium text-[#F8FAFC]">{cr.name}</td>
-                      <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtCurrency(cr.cost, cur)}</td>
-                      <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{cr.avg_days}d</td>
-                      <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">{cr.reliability}%</td>
-                      <td className="px-5 py-3.5 text-right font-metric font-bold text-rose-300">{cr.failure_rate}%</td>
-                      <td className="px-5 py-3.5 text-right font-metric text-[#94A3B8]">{cr.volume_share}%</td>
+                      <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtCurrency(cr.cost || 0, cur)}</td>
+                      <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{cr.avg_days || 0}d</td>
+                      <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">{cr.reliability || 0}%</td>
+                      <td className="px-5 py-3.5 text-right font-metric font-bold text-rose-300">{cr.failure_rate || 0}%</td>
+                      <td className="px-5 py-3.5 text-right font-metric text-[#94A3B8]">{cr.volume_share || 0}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -97,26 +121,30 @@ export default function Operations() {
         {/* PAYMENTS */}
         <TabsContent value="payments" className="mt-6 space-y-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Card className="p-5"><Stat label="Authorization Rate" value={`${o.payments.success_rate}%`} /></Card>
-            <Card className="p-5"><Stat label="Declined / Failed" value={`${o.payments.failure_rate}%`} /></Card>
-            <Card className="p-5"><Stat label="Effective Processing Rate" value={`${o.payments.avg_fee_pct}%`} /></Card>
-            <Card className="p-5"><Stat label="Accumulated Gateway Fees" value={fmtCurrency(o.payments.total_fees, cur)} /></Card>
+            <Card className="p-5"><Stat label="Authorization Rate" value={`${payments.success_rate || 0}%`} /></Card>
+            <Card className="p-5"><Stat label="Declined / Failed" value={`${payments.failure_rate || 0}%`} /></Card>
+            <Card className="p-5"><Stat label="Effective Processing Rate" value={`${payments.avg_fee_pct || 0}%`} /></Card>
+            <Card className="p-5"><Stat label="Accumulated Gateway Fees" value={fmtCurrency(payments.total_fees || 0, cur)} /></Card>
           </div>
           <Card className="p-5 sm:p-6">
             <SectionHeader title="Payment Method Share & Conversion" subtitle="Breakdown of customer checkout preferences and gateway health" />
             <div className="mt-5 space-y-3.5">
-              {o.payments.methods.map((mth, i) => (
-                <div key={mth.method} className="flex items-center gap-4">
-                  <div className="w-44 shrink-0 text-xs font-semibold text-[#CBD5E1]">{mth.method}</div>
-                  <div className="flex-1">
-                    <div className="h-2 overflow-hidden rounded-full bg-[#070C0A] border border-[#16221B]">
-                      <div className="h-full rounded-full" style={{ width: `${mth.share}%`, background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+              {paymentMethods.length === 0 ? (
+                <p className="text-xs text-[#64748B] py-3 text-center">No payment gateway records available.</p>
+              ) : (
+                paymentMethods.map((mth, i) => (
+                  <div key={mth.method || i} className="flex items-center gap-4">
+                    <div className="w-44 shrink-0 text-xs font-semibold text-[#CBD5E1]">{mth.method}</div>
+                    <div className="flex-1">
+                      <div className="h-2 overflow-hidden rounded-full bg-[#070C0A] border border-[#16221B]">
+                        <div className="h-full rounded-full" style={{ width: `${mth.share || 0}%`, background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                      </div>
                     </div>
+                    <div className="w-16 text-right font-metric text-xs text-[#94A3B8]">{mth.share || 0}% share</div>
+                    <div className="w-28 text-right font-metric text-xs font-bold text-emerald-400">{mth.success || 0}% success</div>
                   </div>
-                  <div className="w-16 text-right font-metric text-xs text-[#94A3B8]">{mth.share}% share</div>
-                  <div className="w-28 text-right font-metric text-xs font-bold text-emerald-400">{mth.success}% success</div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </Card>
         </TabsContent>

@@ -33,7 +33,26 @@ export default function Products() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
+  const cur = data?.workspace?.currency || "USD";
+  const products = data?.products || [];
+  const isDemo = Boolean(data?.workspace?.is_demo);
+
+  if (!isDemo && products.length === 0) {
+    return (
+      <div className="space-y-8" data-testid="products-empty-state">
+        <SectionHeader
+          title="Product Intelligence"
+          subtitle="Multidimensional catalog ranking across velocity, unit margins, and return friction"
+          icon={Package}
+        />
+        <EmptyWorkspace
+          name={data?.workspace?.name}
+          title="No products in catalog yet"
+          description="Connect your Shopify store in Settings to automatically sync catalog SKUs, unit economics, COGS, and return friction."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8" data-testid="products-page">
@@ -43,7 +62,7 @@ export default function Products() {
         icon={Package}
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {data.products.map((p) => (
+        {products.map((p) => (
           <button
             key={p.id}
             onClick={() => navigate(`/app/products/${p.id}`)}
@@ -53,20 +72,20 @@ export default function Products() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="truncate font-display font-bold text-[#F8FAFC]">{p.name}</p>
+                  <p className="truncate font-display font-bold text-[#F8FAFC]">{p.name || "Untitled Product"}</p>
                   {p.cogs_status && <ValueBadge kind={p.cogs_status} />}
                 </div>
-                <p className="mt-0.5 text-xs text-[#64748B]">{p.category} · {p.channel}</p>
+                <p className="mt-0.5 text-xs text-[#64748B]">{p.category || "General"} · {p.channel || "Direct"}</p>
               </div>
-              <HealthRing score={p.health.score} />
+              <HealthRing score={p.health?.score ?? 50} />
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg border border-[#16221B] bg-[#070C0A] p-2.5 text-center">
-              <div><p className="text-[10px] uppercase tracking-wider text-[#64748B]">Revenue</p><p className="mt-0.5 font-metric text-xs font-bold text-[#F8FAFC]">{fmtCurrency(p.revenue, cur, true)}</p></div>
-              <div><p className="text-[10px] uppercase tracking-wider text-[#64748B]">Margin</p><p className={`mt-0.5 font-metric text-xs font-bold ${p.margin > 20 ? "text-emerald-400" : "text-amber-400"}`}>{p.margin}%</p></div>
-              <div><p className="text-[10px] uppercase tracking-wider text-[#64748B]">Returns</p><p className="mt-0.5 font-metric text-xs font-bold text-[#CBD5E1]">{p.return_rate}%</p></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-[#64748B]">Revenue</p><p className="mt-0.5 font-metric text-xs font-bold text-[#F8FAFC]">{fmtCurrency(p.revenue || 0, cur, true)}</p></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-[#64748B]">Margin</p><p className={`mt-0.5 font-metric text-xs font-bold ${(p.margin || 0) > 20 ? "text-emerald-400" : "text-amber-400"}`}>{p.margin || 0}%</p></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-[#64748B]">Returns</p><p className="mt-0.5 font-metric text-xs font-bold text-[#CBD5E1]">{p.return_rate || 0}%</p></div>
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-[#16221B] pt-3">
-              <span className="text-xs text-[#64748B]">{fmtNumber(p.units)} units sold</span>
+              <span className="text-xs text-[#64748B]">{fmtNumber(p.units || 0)} units sold</span>
               <span className="flex items-center gap-1 text-xs font-medium text-emerald-400">Inspect SKU <ArrowRight size={12} /></span>
             </div>
           </button>

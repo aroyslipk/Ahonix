@@ -67,8 +67,10 @@ export default function ActionCenter() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
-  const lifecycle = data.lifecycle;
+  const cur = data?.workspace?.currency || "USD";
+  const lifecycle = data?.lifecycle || ["Identified", "Simulated", "Awaiting Approval", "Approved", "Executed", "Measured"];
+  const actions = data?.actions || [];
+  const isDemo = Boolean(data?.workspace?.is_demo);
 
   const run = async (action) => {
     const op = nextOp(action.stage);
@@ -85,7 +87,7 @@ export default function ActionCenter() {
       toast.success(messages[op.op]);
       qc.setQueryData(["actions"], (old) => ({
         ...old,
-        actions: old.actions.map((a) => (a.action_id === action.action_id ? res.action : a)),
+        actions: (old?.actions || []).map((a) => (a.action_id === action.action_id ? res.action : a)),
       }));
     } catch {
       toast.error("Couldn't update this action.");
@@ -94,7 +96,29 @@ export default function ActionCenter() {
     }
   };
 
-  const pendingCount = data.actions.filter((a) => !["Executed", "Measured"].includes(a.stage)).length;
+  const pendingCount = actions.filter((a) => !["Executed", "Measured"].includes(a.stage)).length;
+
+  if (!isDemo && actions.length === 0) {
+    return (
+      <div className="space-y-8" data-testid="actions-empty-state">
+        <SectionHeader
+          title="Action Center"
+          subtitle="Autonomous interventions awaiting merchant decision"
+          icon={CheckSquare}
+          right={
+            <span className="flex items-center gap-2 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-3.5 py-1.5 text-xs font-medium text-[#F5DE87]">
+              <ShieldCheck size={14} className="text-[#D4AF37]" /> Sandboxed Execution Environment
+            </span>
+          }
+        />
+        <EmptyWorkspace
+          name={data?.workspace?.name}
+          title="No pending actions yet"
+          description="Connect your commerce integrations in Settings. As live order and advertising data syncs, AHONIX automatically generates prioritized margin-recovery interventions."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -134,7 +158,7 @@ export default function ActionCenter() {
 
       {/* Action cards grid */}
       <div className="grid gap-5 lg:grid-cols-2">
-        {data.actions.map((a) => {
+        {actions.map((a) => {
           const op = nextOp(a.stage);
           const cfg = STAGE_CONFIG[a.stage] || { badge: "border-[#1B2B22] bg-[#070C0A] text-[#94A3B8]", dot: "bg-slate-400" };
           const OpIcon = op?.icon;

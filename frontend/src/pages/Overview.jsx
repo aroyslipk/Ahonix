@@ -18,15 +18,28 @@ function greeting() {
   return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
 }
 
-export function EmptyWorkspace({ name }) {
+export function EmptyWorkspace({
+  name,
+  title = "No commerce data yet",
+  description,
+  actionLabel = "Go to integrations",
+  actionPath = "/app/settings",
+}) {
   const navigate = useNavigate();
   return (
     <EmptyState
-      title="Connect your commerce data"
-      description={`${name} has no data connected yet. Add an integration to start seeing insights, or switch to the demo workspace to explore AHONIX now.`}
+      title={title}
+      description={
+        description ||
+        `${name || "This workspace"} has no commerce data connected yet. Connect Shopify or add your first data source in Settings to activate this view.`
+      }
       action={
-        <Button onClick={() => navigate("/app/settings")} className="bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400" data-testid="connect-data-btn">
-          Go to integrations <ArrowRight size={15} className="ml-1.5" />
+        <Button
+          onClick={() => navigate(actionPath)}
+          className="bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400"
+          data-testid="connect-data-btn"
+        >
+          {actionLabel} <ArrowRight size={15} className="ml-1.5" />
         </Button>
       }
     />
@@ -43,8 +56,46 @@ export default function Overview() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
-  const b = data.briefing;
+  const isDemo = Boolean(data?.workspace?.is_demo);
+  const cur = data?.workspace?.currency || "USD";
+  const b = data?.briefing || {};
+  const kpis = data?.kpis || [];
+  const weekly = data?.weekly || [];
+  const priorities = data?.priorities || [];
+
+  // Check if live workspace has any telemetry yet
+  const hasCommerceData =
+    isDemo ||
+    Boolean(b?.yesterday) ||
+    kpis.some((k) => k.value > 0) ||
+    weekly.length > 0;
+
+  if (!hasCommerceData) {
+    return (
+      <div className="space-y-8" data-testid="overview-empty-state">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(0,229,153,0.8)]" />
+              Executive Command Center
+            </div>
+            <h1 className="mt-1.5 font-display text-3xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-4xl">
+              {greeting()}, {(user?.name || "Alex").split(" ")[0]}
+            </h1>
+            <p className="mt-1 text-xs text-[#94A3B8]">
+              {data?.workspace?.name || "Your Workspace"} · Live Production Mode
+            </p>
+          </div>
+        </div>
+
+        <EmptyWorkspace
+          name={data?.workspace?.name}
+          title="No commerce data yet"
+          description="Connect Shopify, Meta Ads, Google Ads, or Stripe in Settings to activate real-time telemetry and executive insights."
+        />
+      </div>
+    );
+  }
 
   const onAction = (insight) => {
     if (["Approve", "Simulate", "Apply"].includes(insight.action)) navigate("/app/action-center");
@@ -68,7 +119,7 @@ export default function Overview() {
             Real-time merchant operating telemetry and prioritized profit opportunities.
           </p>
         </div>
-        {data.workspace.is_demo && <DemoRibbon storeName={data.workspace.name} />}
+        {data?.workspace?.is_demo && <DemoRibbon storeName={data.workspace.name} />}
       </div>
 
       {/* Executive Daily Briefing */}
@@ -89,13 +140,13 @@ export default function Overview() {
 
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {[
-              ["Net Revenue", fmtCurrency(b.yesterday.revenue, cur)],
-              ["True Profit", fmtCurrency(b.yesterday.true_profit, cur)],
-              ["Orders", fmtNumber(b.yesterday.orders)],
-              ["Return Rate", fmtPercent(b.yesterday.return_rate)],
+              ["Net Revenue", fmtCurrency(b?.yesterday?.revenue ?? 0, cur)],
+              ["True Profit", fmtCurrency(b?.yesterday?.true_profit ?? 0, cur)],
+              ["Orders", fmtNumber(b?.yesterday?.orders ?? 0)],
+              ["Return Rate", fmtPercent(b?.yesterday?.return_rate ?? 0)],
               [
                 "Marketing Efficiency",
-                b.yesterday.marketing_eff && b.yesterday.marketing_eff > 0
+                b?.yesterday?.marketing_eff && b.yesterday.marketing_eff > 0
                   ? `${b.yesterday.marketing_eff}x`
                   : "—",
               ],
@@ -119,7 +170,7 @@ export default function Overview() {
               Operating Observations
             </p>
             <ul className="space-y-2.5">
-              {b.noticed.map((n, i) => (
+              {(b?.noticed || []).map((n, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-[#CBD5E1]">
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
                   <span>{n}</span>
@@ -135,8 +186,12 @@ export default function Overview() {
                 Primary Recommendation
               </p>
             </div>
-            <p className="mt-2 font-display text-base font-bold text-[#F8FAFC]">{b.recommendation.title}</p>
-            <p className="mt-1.5 text-xs leading-relaxed text-[#94A3B8]">{b.recommendation.recommendation}</p>
+            <p className="mt-2 font-display text-base font-bold text-[#F8FAFC]">
+              {b?.recommendation?.title || "Connect Data Sources"}
+            </p>
+            <p className="mt-1.5 text-xs leading-relaxed text-[#94A3B8]">
+              {b?.recommendation?.recommendation || "Integrate your sales channels to surface automated operating recommendations."}
+            </p>
             <Button
               size="sm"
               onClick={() => navigate("/app/action-center")}
@@ -150,22 +205,24 @@ export default function Overview() {
       </div>
 
       {/* Core KPIs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {data.kpis.map((k) => (
-          <KpiCard
-            key={k.id}
-            kpi={k}
-            currency={cur}
-            onClick={
-              k.id === "true-profit"
-                ? () => navigate("/app/profit")
-                : k.id === "marketing-eff"
-                ? () => navigate("/app/marketing")
-                : undefined
-            }
-          />
-        ))}
-      </div>
+      {kpis.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {kpis.map((k) => (
+            <KpiCard
+              key={k.id || k.label}
+              kpi={k}
+              currency={cur}
+              onClick={
+                k.id === "true-profit"
+                  ? () => navigate("/app/profit")
+                  : k.id === "marketing-eff"
+                  ? () => navigate("/app/marketing")
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+      )}
 
       {/* Revenue Trend */}
       <Card className="p-5 sm:p-6">
@@ -175,39 +232,41 @@ export default function Overview() {
           right={<ValueBadge kind="ACTUAL" />}
         />
         <div className="mt-5">
-          <TrendArea data={data.weekly} dataKey="revenue" currency={cur} />
+          <TrendArea data={weekly} dataKey="revenue" currency={cur} />
         </div>
       </Card>
 
       {/* Strategic Priorities */}
-      <div>
-        <SectionHeader
-          title="Strategic Priorities"
-          subtitle={`${data.priorities.length} high-impact interventions surfaced by your data`}
-          right={
-            <Button
-              variant="outline"
-              onClick={() => navigate("/app/ai-intelligence")}
-              className="border-[#16221B] bg-[#0B110E] text-xs text-[#94A3B8] hover:border-emerald-500/30 hover:bg-[#0E1713] hover:text-[#F8FAFC]"
-              data-testid="view-xray-btn"
-            >
-              Diagnostic Intelligence <ArrowRight size={13} className="ml-1.5" />
-            </Button>
-          }
-        />
-        <div className="mt-5 grid gap-4 lg:grid-cols-3">
-          {data.priorities.map((p) => (
-            <InsightCard
-              key={p.id}
-              insight={p}
-              category={p.category}
-              currency={cur}
-              onAsk={(ins) => openAsk(`Analyze this finding and provide step-by-step guidance: ${ins.title}`)}
-              onAction={onAction}
-            />
-          ))}
+      {priorities.length > 0 && (
+        <div>
+          <SectionHeader
+            title="Strategic Priorities"
+            subtitle={`${priorities.length} high-impact interventions surfaced by your data`}
+            right={
+              <Button
+                variant="outline"
+                onClick={() => navigate("/app/ai-intelligence")}
+                className="border-[#16221B] bg-[#0B110E] text-xs text-[#94A3B8] hover:border-emerald-500/30 hover:bg-[#0E1713] hover:text-[#F8FAFC]"
+                data-testid="view-xray-btn"
+              >
+                Diagnostic Intelligence <ArrowRight size={13} className="ml-1.5" />
+              </Button>
+            }
+          />
+          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+            {priorities.map((p) => (
+              <InsightCard
+                key={p.id}
+                insight={p}
+                category={p.category}
+                currency={cur}
+                onAsk={(ins) => openAsk(`Analyze this finding and provide step-by-step guidance: ${ins.title}`)}
+                onAction={onAction}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

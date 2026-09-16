@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, BrainCircuit, TrendingUp, Boxes, CheckSquare,
 } from "lucide-react";
@@ -8,6 +8,7 @@ import { TopBar } from "@/components/TopBar";
 import { AskAhonix } from "@/components/AskAhonix";
 import { WorkspaceProvider } from "@/context/WorkspaceContext";
 import { UIProvider } from "@/context/UIContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const MOBILE_NAV = [
   { name: "Overview", icon: LayoutDashboard, path: "/app/overview" },
@@ -18,6 +19,8 @@ const MOBILE_NAV = [
 ];
 
 export function AppLayout() {
+  const location = useLocation();
+
   return (
     <UIProvider>
       <WorkspaceProvider>
@@ -27,7 +30,9 @@ export function AppLayout() {
             <TopBar />
             <main className="flex-1 px-4 pb-24 pt-6 sm:px-6 md:pb-8 lg:px-8">
               <div className="mx-auto max-w-[1400px]">
-                <Outlet />
+                <ErrorBoundary key={location.pathname}>
+                  <Outlet />
+                </ErrorBoundary>
               </div>
             </main>
           </div>

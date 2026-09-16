@@ -33,7 +33,9 @@ export default function Markets() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
+  const cur = data?.workspace?.currency || "USD";
+  const markets = data?.markets || [];
+  const isDemo = Boolean(data?.workspace?.is_demo);
 
   const runSim = async () => {
     setRunning(true);
@@ -46,10 +48,29 @@ export default function Markets() {
         marketing_budget: Number(sim.marketing_budget),
       });
       setResult(res.result);
+    } catch {
+      setResult(null);
     } finally {
       setRunning(false);
     }
   };
+
+  if (!isDemo && markets.length === 0) {
+    return (
+      <div className="space-y-8" data-testid="markets-empty-state">
+        <SectionHeader
+          title="Market Intelligence & Expansion"
+          subtitle="Cross-border demand analysis, margin feasibility, and entry simulation"
+          icon={Globe}
+        />
+        <EmptyWorkspace
+          name={data?.workspace?.name}
+          title="No market expansion data yet"
+          description="Connect international sales channels or Shopify Markets in Settings to evaluate regional demand, operating margins, and cross-border feasibility."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8" data-testid="markets-page">
@@ -80,7 +101,7 @@ export default function Markets() {
 
         <TabsContent value="opportunities" className="mt-6">
           <div className="grid gap-4 lg:grid-cols-2">
-            {data.markets.map((m) => (
+            {markets.map((m) => (
               <Card key={m.code} className="p-5 sm:p-6" data-testid={`market-card-${m.code}`}>
                 <div className="flex items-start justify-between">
                   <div>

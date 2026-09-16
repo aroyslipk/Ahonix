@@ -26,10 +26,10 @@ export default function TrueProfit() {
   if (isError) return <ErrorState onRetry={refetch} />;
   if (data?.empty) return <EmptyWorkspace name={data.workspace?.name} />;
 
-  const cur = data.workspace.currency;
-  const p = data.profit;
-  const gross = p.gross_revenue;
-  const profitBadgeKind = p.cogs_kind || (data.workspace?.is_demo ? "ACTUAL" : "ESTIMATED");
+  const cur = data?.workspace?.currency || "USD";
+  const p = data?.profit || {};
+  const gross = p.gross_revenue || 0;
+  const profitBadgeKind = p.cogs_kind || (data?.workspace?.is_demo ? "ACTUAL" : "ESTIMATED");
 
   const completeness = p.financial_completeness || { status: "PARTIAL", reasons: [] };
   const completenessStatus = completeness.status || "PARTIAL";
@@ -284,19 +284,27 @@ export default function TrueProfit() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#121A15]">
-              {p.product_profit && p.product_profit.map((row, i) => (
-                <tr key={i} className="hover:bg-[#0E1713] transition-colors">
-                  <td className="px-5 py-3.5 font-medium text-[#F8FAFC]">{row.name}</td>
-                  <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtNumber(row.units)}</td>
-                  <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtCurrency(row.revenue, cur)}</td>
-                  <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">{fmtCurrency(row.true_profit, cur)}</td>
-                  <td className="px-5 py-3.5 text-right">
-                    <span className={`font-metric font-bold ${row.margin > 20 ? "text-emerald-400" : row.margin > 10 ? "text-amber-400" : "text-rose-400"}`}>
-                      {fmtPercent(row.margin)}
-                    </span>
+              {(!p.product_profit || p.product_profit.length === 0) ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-center text-xs text-[#64748B]">
+                    No product-level profit records available yet. Connect your store in Settings to populate margin telemetry.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                p.product_profit.map((row, i) => (
+                  <tr key={row.id || i} className="hover:bg-[#0E1713] transition-colors">
+                    <td className="px-5 py-3.5 font-medium text-[#F8FAFC]">{row.name}</td>
+                    <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtNumber(row.units || 0)}</td>
+                    <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtCurrency(row.revenue || 0, cur)}</td>
+                    <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">{fmtCurrency(row.true_profit || 0, cur)}</td>
+                    <td className="px-5 py-3.5 text-right">
+                      <span className={`font-metric font-bold ${(row.margin || 0) > 20 ? "text-emerald-400" : (row.margin || 0) > 10 ? "text-amber-400" : "text-rose-400"}`}>
+                        {fmtPercent(row.margin || 0)}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
