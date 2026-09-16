@@ -375,13 +375,13 @@ export default function Landing() {
         </AnimatePresence>
       </header>
 
-      {/* 2. Hero Section: ONE SINGLE DESIGNED VIEWPORT CANVAS */}
+      {/* 2. Hero Section: ADAPTIVE DUAL-VIEWPORT CANVAS */}
       <section
         id="home"
         ref={heroRef}
         onMouseMove={handleHeroMouseMove}
         onMouseLeave={handleHeroMouseLeave}
-        className="relative min-h-screen w-full overflow-hidden bg-[#040706] flex items-center pt-24 pb-16 lg:py-0 lg:h-screen lg:min-h-[740px] lg:max-h-[1050px]"
+        className="relative w-full overflow-hidden bg-[#040706] pt-24 pb-14 sm:pt-28 sm:pb-20 lg:py-0 lg:h-screen lg:min-h-[740px] lg:max-h-[1050px] lg:flex lg:items-center"
       >
         {/* Layer 1: Volumetric Spotlight Beam from top-right */}
         <div
@@ -411,7 +411,7 @@ export default function Landing() {
             y: prefersReducedMotion ? 0 : wordmarkParallaxY,
             translateY: prefersReducedMotion ? 0 : scrollWordmarkY,
           }}
-          className="pointer-events-none absolute inset-x-0 top-[32%] sm:top-[35%] lg:top-[38%] -translate-y-1/2 z-10 text-center select-none overflow-hidden"
+          className="pointer-events-none absolute inset-x-0 top-[20%] sm:top-[24%] lg:top-[38%] -translate-y-1/2 z-10 text-center select-none overflow-hidden"
           aria-hidden="true"
         >
           <span
@@ -428,12 +428,12 @@ export default function Landing() {
           </span>
         </motion.div>
 
-        {/* Layer 4: Integrated 3D Sculptural "A" Emblem */}
-        <div className="pointer-events-none absolute right-[1vw] sm:right-[4vw] lg:right-[8vw] xl:right-[11vw] bottom-[-20px] sm:bottom-0 lg:bottom-[2vh] w-[290px] sm:w-[440px] md:w-[540px] lg:w-[680px] xl:w-[780px] z-20 opacity-80 sm:opacity-95 lg:opacity-100">
+        {/* Layer 4: Desktop Integrated 3D Sculptural "A" Emblem */}
+        <div className="pointer-events-none absolute right-[1vw] sm:right-[4vw] lg:right-[8vw] xl:right-[11vw] bottom-[-20px] sm:bottom-0 lg:bottom-[2vh] w-[290px] sm:w-[440px] md:w-[540px] lg:w-[680px] xl:w-[780px] z-20 opacity-80 sm:opacity-95 lg:opacity-100 hidden lg:block">
           <Hero3DScene scrollYProgress={scrollYProgress} />
         </div>
 
-        {/* Layer 5: Foreground Editorial Content */}
+        {/* Layer 5: Foreground Editorial Content & Mobile Composition */}
         <div className="relative z-30 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.div
             style={{
@@ -444,37 +444,37 @@ export default function Landing() {
             className="max-w-xl lg:max-w-2xl"
           >
             {/* Eyebrow badge with clean emerald dash */}
-            <div className="mb-5 sm:mb-6 inline-flex items-center gap-3">
-              <span className="font-mono text-xs font-semibold tracking-[0.25em] text-[#94A3B8] uppercase">
+            <div className="mb-4 sm:mb-6 inline-flex items-center gap-2.5 sm:gap-3">
+              <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.2em] text-[#94A3B8] uppercase">
                 AI COMMERCE OS
               </span>
-              <span className="h-[2px] w-8 rounded-full bg-[#00E599]" />
+              <span className="h-[2px] w-6 sm:w-8 rounded-full bg-[#00E599]" />
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-display text-4xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
+            <h1 className="font-display text-3xl sm:text-5xl lg:text-[3.75rem] font-extrabold tracking-tight text-[#F8FAFC] leading-[1.15] lg:leading-[1.1]">
               Turn Your Commerce <br />
               Into <span className="text-[#00E599]">Real Profit</span>
             </h1>
 
             {/* Supporting Copy */}
-            <p className="mt-5 sm:mt-6 max-w-lg text-sm sm:text-base leading-relaxed text-[#94A3B8] lg:text-lg">
+            <p className="mt-3 sm:mt-5 max-w-lg text-xs sm:text-base leading-relaxed text-[#94A3B8] lg:text-lg">
               AHONIX is your AI-powered commerce operating system. Connect your
               data, get real insights, and take action — all in one place.
             </p>
 
             {/* Real CTA Action Buttons */}
-            <div className="mt-8 sm:mt-9 flex flex-wrap items-center gap-3.5 sm:gap-4">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <Link
                 to="/register"
-                className="flex items-center gap-2.5 rounded-full bg-[#00E599] px-6 sm:px-7 py-3 sm:py-3.5 text-xs font-bold text-[#040706] shadow-xl shadow-[#00E599]/20 transition-all duration-200 hover:bg-[#00c984] hover:scale-[1.02]"
+                className="flex items-center justify-center gap-2.5 rounded-full bg-[#00E599] px-6 sm:px-7 py-3.5 text-xs font-bold text-[#040706] shadow-xl shadow-[#00E599]/20 transition-all duration-200 hover:bg-[#00c984] hover:scale-[1.02]"
                 data-testid="hero-cta"
               >
                 Explore AHONIX <ArrowRight size={14} />
               </Link>
               <button
                 onClick={() => setDemoModalOpen(true)}
-                className="flex items-center gap-2.5 rounded-full border border-[#16221B] bg-[#070C0A] px-5 sm:px-6 py-3 sm:py-3.5 text-xs font-semibold text-[#F8FAFC] transition-all duration-200 hover:border-[#1F3327] hover:bg-[#0B110E]"
+                className="flex items-center justify-center gap-2.5 rounded-full border border-[#16221B] bg-[#070C0A] px-5 sm:px-6 py-3.5 text-xs font-semibold text-[#F8FAFC] transition-all duration-200 hover:border-[#1F3327] hover:bg-[#0B110E]"
                 data-testid="hero-demo-btn"
               >
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#00E599]/15 text-[#00E599]">
@@ -485,7 +485,7 @@ export default function Landing() {
             </div>
 
             {/* Trust micro-badges */}
-            <div className="mt-10 sm:mt-12 flex flex-wrap items-center gap-4 sm:gap-6 border-t border-[#16221B] pt-5 sm:pt-6 text-xs text-[#64748B]">
+            <div className="mt-6 sm:mt-10 flex flex-wrap items-center gap-4 sm:gap-6 border-t border-[#16221B] pt-4 sm:pt-6 text-[11px] sm:text-xs text-[#64748B]">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 size={13} className="text-[#00E599]" /> No credit card needed
               </span>
@@ -494,11 +494,26 @@ export default function Landing() {
               </span>
             </div>
           </motion.div>
+
+          {/* Layer 4b: Mobile Sculptural 3D Showcase (Centered & Volumetric) */}
+          <div className="relative mt-8 sm:mt-10 mx-auto flex flex-col items-center justify-center lg:hidden">
+            <div className="pointer-events-none absolute h-60 w-60 rounded-full bg-[#00E599]/15 blur-3xl" />
+            <div className="relative w-[260px] sm:w-[340px]">
+              <Hero3DScene scrollYProgress={scrollYProgress} />
+            </div>
+            {/* Live Telemetry Badge below 3D Emblem on Mobile */}
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#16221B] bg-[#070C0A]/90 px-3.5 py-1.5 shadow-xl backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-[#00E599] animate-pulse" />
+              <span className="font-mono text-[10px] font-medium text-[#CBD5E1]">
+                99.9% Margin Accuracy · Real Telemetry
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* 3. The 9-Stage Continuous Closed-Loop Optimization — 3D SCROLL REVEAL */}
-      <section id="loop" className="relative border-y border-[#16221B] bg-[#070C0A] py-20 sm:py-24 overflow-hidden scroll-mt-20">
+      <section id="loop" className="relative border-y border-[#16221B] bg-[#070C0A] py-14 sm:py-24 overflow-hidden scroll-mt-20">
         {/* Ambient background glow */}
         <div
           className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[800px] rounded-full opacity-15"
@@ -511,37 +526,37 @@ export default function Landing() {
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#16221B] bg-[#0B1410] px-4 py-1.5 text-xs font-semibold text-[#00E599] mb-4">
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#16221B] bg-[#0B1410] px-3.5 sm:px-4 py-1.5 text-[11px] sm:text-xs font-semibold text-[#00E599] mb-3 sm:mb-4">
               <Sparkles size={13} />
               <span>CONTINUOUS CLOSED-LOOP OPTIMIZATION</span>
             </div>
-            <h2 className="font-display text-3xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-4xl lg:text-5xl">
+            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#F8FAFC]">
               9 Synchronized Stages. <br className="hidden sm:inline" />
               <span className="text-[#00E599]">Zero Financial Guesswork.</span>
             </h2>
-            <p className="mt-4 text-sm sm:text-base text-[#94A3B8] leading-relaxed">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#94A3B8] leading-relaxed">
               AHONIX doesn't just present passive reporting. Every transaction, order, and ad impression
               flows continuously through our deterministic closed-loop operating sequence.
             </p>
           </div>
 
           {/* 3D Staggered Cascade Grid with Perspective */}
-          <div className="[perspective:1200px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+          <div className="[perspective:1200px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-7">
             {LOOP_STAGES.map((stage, idx) => {
               const Icon = stage.icon;
               return (
                 <motion.div
                   key={stage.step}
-                  initial={{ opacity: 0, y: 45, rotateX: 18, scale: 0.94 }}
+                  initial={{ opacity: 0, y: 35, rotateX: 14, scale: 0.96 }}
                   whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
-                  viewport={{ once: false, amount: 0.2 }}
+                  viewport={{ once: true, amount: 0.1 }}
                   transition={{
-                    duration: 0.55,
-                    delay: (idx % 3) * 0.1,
+                    duration: 0.5,
+                    delay: (idx % 3) * 0.08,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className="group relative flex flex-col justify-between rounded-2xl border border-[#16221B] bg-gradient-to-b from-[#0B130F] to-[#070C0A] p-6 sm:p-7 shadow-xl shadow-black/40 transition-all duration-300 hover:border-[#00E599]/50 hover:shadow-[0_20px_35px_-10px_rgba(0,229,153,0.15)] hover:-translate-y-1"
+                  className="group relative flex flex-col justify-between rounded-2xl border border-[#16221B] bg-gradient-to-b from-[#0B130F] to-[#070C0A] p-5 sm:p-7 shadow-xl shadow-black/40 transition-all duration-300 hover:border-[#00E599]/50 hover:shadow-[0_20px_35px_-10px_rgba(0,229,153,0.15)] hover:-translate-y-1"
                 >
                   {/* Subtle top reflection rim */}
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#00E599]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -567,17 +582,17 @@ export default function Landing() {
                       <span className="text-xs font-semibold text-[#00E599]">
                         {stage.sub}
                       </span>
-                      <h3 className="mt-1 font-display text-xl font-bold text-[#F8FAFC] group-hover:text-white transition-colors">
+                      <h3 className="mt-1 font-display text-lg sm:text-xl font-bold text-[#F8FAFC] group-hover:text-white transition-colors">
                         {stage.name}
                       </h3>
-                      <p className="mt-2.5 text-xs leading-relaxed text-[#94A3B8]">
+                      <p className="mt-2 text-xs leading-relaxed text-[#94A3B8]">
                         {stage.desc}
                       </p>
                     </div>
                   </div>
 
                   {/* Bottom Connection Arrow / Indicator */}
-                  <div className="mt-6 flex items-center justify-between border-t border-[#16221B] pt-4 text-xs text-[#64748B]">
+                  <div className="mt-5 sm:mt-6 flex items-center justify-between border-t border-[#16221B] pt-3.5 sm:pt-4 text-xs text-[#64748B]">
                     <span className="font-mono text-[11px] text-[#475569]">
                       Stage {idx + 1} of 9
                     </span>
@@ -599,42 +614,42 @@ export default function Landing() {
       </section>
 
       {/* 4. Core Pillars / Architecture */}
-      <section id="features" className="py-24 relative scroll-mt-20">
+      <section id="features" className="py-14 sm:py-24 relative scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <span className="font-mono text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
+            <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
               Engineered For Financial Clarity
             </span>
-            <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-4xl">
+            <h2 className="mt-2 sm:mt-3 font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-[#F8FAFC]">
               Precision Systems. Not Speculation.
             </h2>
-            <p className="mt-4 text-base text-[#94A3B8]">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#94A3B8]">
               Modern commerce tech stacks fragment your numbers. AHONIX delivers
               single-pane deterministic reconciliation.
             </p>
           </div>
 
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 sm:mt-16 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {PILLARS.map((pillar) => {
               const Icon = pillar.icon;
               return (
                 <div
                   key={pillar.title}
-                  className="group relative rounded-2xl border border-[#16221B] bg-[#070C0A] p-7 transition-all duration-300 hover:border-[#1F3327] hover:bg-[#0B110E]"
+                  className="group relative rounded-2xl border border-[#16221B] bg-[#070C0A] p-5 sm:p-7 transition-all duration-300 hover:border-[#1F3327] hover:bg-[#0B110E]"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#00E599]/25 bg-[#00E599]/10 text-[#00E599] transition-transform duration-300 group-hover:scale-105">
-                      <Icon size={20} />
+                    <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl border border-[#00E599]/25 bg-[#00E599]/10 text-[#00E599] transition-transform duration-300 group-hover:scale-105">
+                      <Icon size={18} />
                     </div>
                     <span className="font-mono text-[10px] font-semibold tracking-wider text-[#64748B] uppercase">
                       {pillar.badge}
                     </span>
                   </div>
 
-                  <h3 className="mt-6 font-display text-lg font-bold text-[#F8FAFC]">
+                  <h3 className="mt-5 sm:mt-6 font-display text-base sm:text-lg font-bold text-[#F8FAFC]">
                     {pillar.title}
                   </h3>
-                  <p className="mt-3 text-xs leading-relaxed text-[#94A3B8]">
+                  <p className="mt-2 sm:mt-3 text-xs leading-relaxed text-[#94A3B8]">
                     {pillar.description}
                   </p>
                 </div>
@@ -647,15 +662,15 @@ export default function Landing() {
       {/* 5. Enterprise Integrations Strip */}
       <section
         id="integrations"
-        className="border-t border-[#16221B] bg-[#070C0A] py-16 relative scroll-mt-20"
+        className="border-t border-[#16221B] bg-[#070C0A] py-12 sm:py-16 relative scroll-mt-20"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
             <div>
-              <p className="font-mono text-xs font-semibold tracking-[0.2em] text-[#00E599] uppercase">
+              <p className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.2em] text-[#00E599] uppercase">
                 Zero-Fabrication Data Connectors
               </p>
-              <h3 className="mt-1 font-display text-2xl font-bold text-[#F8FAFC]">
+              <h3 className="mt-1 font-display text-xl sm:text-2xl font-bold text-[#F8FAFC]">
                 Native API Ingestion. Cryptographic Isolation.
               </h3>
             </div>
@@ -667,21 +682,21 @@ export default function Landing() {
             </Link>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {INTEGRATIONS.map((it) => (
               <div
                 key={it.name}
-                className="flex flex-col rounded-xl border border-[#16221B] bg-[#0B110E] p-4 transition-colors hover:border-[#1F3327]"
+                className="flex flex-col rounded-xl border border-[#16221B] bg-[#0B110E] p-3.5 sm:p-4 transition-colors hover:border-[#1F3327]"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-[#F8FAFC]">
+                  <span className="text-xs sm:text-sm font-bold text-[#F8FAFC]">
                     {it.name}
                   </span>
                   <span className="rounded-md bg-[#00E599]/10 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-[#00E599]">
                     {it.badge}
                   </span>
                 </div>
-                <span className="mt-2 font-mono text-[11px] text-[#64748B]">
+                <span className="mt-2 font-mono text-[10px] sm:text-[11px] text-[#64748B]">
                   {it.status}
                 </span>
               </div>
@@ -691,27 +706,27 @@ export default function Landing() {
       </section>
 
       {/* 6. Pricing Section */}
-      <section id="pricing" className="border-t border-[#16221B] bg-[#040706] py-24 relative scroll-mt-20">
+      <section id="pricing" className="border-t border-[#16221B] bg-[#040706] py-14 sm:py-24 relative scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto">
-            <span className="font-mono text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
+            <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
               Predictable Commerce Economics
             </span>
-            <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-4xl lg:text-5xl">
+            <h2 className="mt-2 sm:mt-3 font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#F8FAFC]">
               Transparent Investment. <br />
               <span className="text-[#00E599]">Exponential Real Profit.</span>
             </h2>
-            <p className="mt-4 text-sm sm:text-base text-[#94A3B8]">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#94A3B8]">
               No percentage take-rates on your GMV. Zero hidden connector surcharge fees.
               Pay only for continuous algorithmic optimization.
             </p>
 
             {/* Monthly / Annual Switch */}
-            <div className="mt-8 inline-flex items-center rounded-full border border-[#16221B] bg-[#070C0A] p-1">
+            <div className="mt-6 sm:mt-8 inline-flex items-center rounded-full border border-[#16221B] bg-[#070C0A] p-1">
               <button
                 onClick={() => setAnnualBilling(false)}
-                className={`rounded-full px-5 py-2 text-xs font-semibold transition-colors ${
+                className={`rounded-full px-4 sm:px-5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-semibold transition-colors ${
                   !annualBilling
                     ? "bg-[#00E599] text-[#040706] shadow-sm"
                     : "text-[#94A3B8] hover:text-white"
@@ -721,14 +736,14 @@ export default function Landing() {
               </button>
               <button
                 onClick={() => setAnnualBilling(true)}
-                className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold transition-colors ${
+                className={`flex items-center gap-1.5 sm:gap-2 rounded-full px-4 sm:px-5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-semibold transition-colors ${
                   annualBilling
                     ? "bg-[#00E599] text-[#040706] shadow-sm"
                     : "text-[#94A3B8] hover:text-white"
                 }`}
               >
                 <span>Annual Billing</span>
-                <span className="rounded-full bg-[#070C0A] px-2 py-0.5 font-mono text-[9px] text-[#00E599]">
+                <span className="rounded-full bg-[#070C0A] px-1.5 sm:px-2 py-0.5 font-mono text-[9px] text-[#00E599]">
                   SAVE 20%
                 </span>
               </button>
@@ -736,9 +751,9 @@ export default function Landing() {
           </div>
 
           {/* Pricing Cards Grid */}
-          <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="mt-10 sm:mt-16 grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
             {/* Starter Tier */}
-            <div className="flex flex-col justify-between rounded-3xl border border-[#16221B] bg-[#070C0A] p-8 transition-all hover:border-[#1F3327]">
+            <div className="flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-[#16221B] bg-[#070C0A] p-6 sm:p-8 transition-all hover:border-[#1F3327]">
               <div>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs font-semibold uppercase text-[#94A3B8]">
@@ -748,21 +763,21 @@ export default function Landing() {
                     Growing Brands
                   </span>
                 </div>
-                <h3 className="mt-4 font-display text-2xl font-bold text-[#F8FAFC]">
+                <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold text-[#F8FAFC]">
                   Direct-to-Consumer
                 </h3>
                 <p className="mt-2 text-xs text-[#94A3B8]">
                   For emerging brands scaling past $20k monthly GMV seeking true net profit visibility.
                 </p>
 
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-extrabold text-[#F8FAFC]">
+                <div className="mt-5 sm:mt-6 flex items-baseline gap-1">
+                  <span className="font-display text-3xl sm:text-4xl font-extrabold text-[#F8FAFC]">
                     ${annualBilling ? "39" : "49"}
                   </span>
                   <span className="text-xs text-[#64748B]">/ month</span>
                 </div>
 
-                <div className="mt-8 space-y-3.5 border-t border-[#16221B] pt-6">
+                <div className="mt-6 sm:mt-8 space-y-3 border-t border-[#16221B] pt-5 sm:pt-6">
                   {[
                     "1 Shopify Store Connection",
                     "Daily True Profit & Unit Margin Sync",
@@ -781,14 +796,14 @@ export default function Landing() {
 
               <Link
                 to="/register"
-                className="mt-8 block w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
+                className="mt-6 sm:mt-8 block w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
               >
                 Start 14-Day Free Trial
               </Link>
             </div>
 
             {/* Growth Tier (Featured) */}
-            <div className="relative flex flex-col justify-between rounded-3xl border-2 border-[#00E599] bg-[#08120D] p-8 shadow-2xl shadow-[#00E599]/10">
+            <div className="relative flex flex-col justify-between rounded-2xl sm:rounded-3xl border-2 border-[#00E599] bg-[#08120D] p-6 sm:p-8 shadow-2xl shadow-[#00E599]/10">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#00E599] px-4 py-1 text-[10px] font-black uppercase tracking-wider text-[#040706]">
                 Most Popular
               </div>
@@ -802,21 +817,21 @@ export default function Landing() {
                     Scale Operators
                   </span>
                 </div>
-                <h3 className="mt-4 font-display text-2xl font-bold text-[#F8FAFC]">
+                <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold text-[#F8FAFC]">
                   Commerce Scale
                 </h3>
                 <p className="mt-2 text-xs text-[#CBD5E1]">
                   For high-growth omnichannel brands managing up to $500k monthly GMV.
                 </p>
 
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-extrabold text-[#F8FAFC]">
+                <div className="mt-5 sm:mt-6 flex items-baseline gap-1">
+                  <span className="font-display text-3xl sm:text-4xl font-extrabold text-[#F8FAFC]">
                     ${annualBilling ? "159" : "199"}
                   </span>
                   <span className="text-xs text-[#94A3B8]">/ month</span>
                 </div>
 
-                <div className="mt-8 space-y-3.5 border-t border-[#16221B] pt-6">
+                <div className="mt-6 sm:mt-8 space-y-3 border-t border-[#16221B] pt-5 sm:pt-6">
                   {[
                     "Up to 3 Stores / Multi-Brand Support",
                     "Real-Time Hourly True Profit Telemetry",
@@ -836,14 +851,14 @@ export default function Landing() {
 
               <Link
                 to="/register"
-                className="mt-8 block w-full rounded-full bg-[#00E599] py-3.5 text-center text-xs font-bold text-[#040706] shadow-lg shadow-[#00E599]/20 transition-all hover:bg-[#00c984] hover:scale-[1.02]"
+                className="mt-6 sm:mt-8 block w-full rounded-full bg-[#00E599] py-3.5 text-center text-xs font-bold text-[#040706] shadow-lg shadow-[#00E599]/20 transition-all hover:bg-[#00c984] hover:scale-[1.02]"
               >
                 Start 14-Day Free Trial →
               </Link>
             </div>
 
             {/* Enterprise Tier */}
-            <div className="flex flex-col justify-between rounded-3xl border border-[#16221B] bg-[#070C0A] p-8 transition-all hover:border-[#1F3327]">
+            <div className="flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-[#16221B] bg-[#070C0A] p-6 sm:p-8 transition-all hover:border-[#1F3327]">
               <div>
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs font-semibold uppercase text-[#94A3B8]">
@@ -853,21 +868,21 @@ export default function Landing() {
                     Conglomerates
                   </span>
                 </div>
-                <h3 className="mt-4 font-display text-2xl font-bold text-[#F8FAFC]">
+                <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold text-[#F8FAFC]">
                   High Volume Operations
                 </h3>
                 <p className="mt-2 text-xs text-[#94A3B8]">
                   For high-scale multi-brand conglomerates requiring custom ERP ingestion and dedicated SLAs.
                 </p>
 
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-extrabold text-[#F8FAFC]">
+                <div className="mt-5 sm:mt-6 flex items-baseline gap-1">
+                  <span className="font-display text-3xl sm:text-4xl font-extrabold text-[#F8FAFC]">
                     ${annualBilling ? "399" : "499"}
                   </span>
                   <span className="text-xs text-[#64748B]">/ month</span>
                 </div>
 
-                <div className="mt-8 space-y-3.5 border-t border-[#16221B] pt-6">
+                <div className="mt-6 sm:mt-8 space-y-3 border-t border-[#16221B] pt-5 sm:pt-6">
                   {[
                     "Unlimited Stores & Custom Warehouses",
                     "Sub-Minute Real-Time Streaming Ingestion",
@@ -887,7 +902,7 @@ export default function Landing() {
 
               <Link
                 to="/register"
-                className="mt-8 block w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
+                className="mt-6 sm:mt-8 block w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
               >
                 Launch Enterprise Sandbox
               </Link>
@@ -897,27 +912,27 @@ export default function Landing() {
       </section>
 
       {/* 7. Resources & FAQ Section */}
-      <section id="resources" className="border-t border-[#16221B] bg-[#070C0A] py-24 relative scroll-mt-20">
+      <section id="resources" className="border-t border-[#16221B] bg-[#070C0A] py-14 sm:py-24 relative scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <span className="font-mono text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
+            <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
               Knowledge Base & Architecture
             </span>
-            <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-[#F8FAFC] sm:text-4xl">
+            <h2 className="mt-2 sm:mt-3 font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-[#F8FAFC]">
               Everything You Need to Master Commerce Operations
             </h2>
-            <p className="mt-4 text-base text-[#94A3B8]">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-base text-[#94A3B8]">
               Deep-dive documentation, verified case benchmarks, and architectural technical whitepapers.
             </p>
           </div>
 
           {/* 4 Resource Cards */}
-          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-6 transition-colors hover:border-[#00E599]/40">
+          <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-5 sm:p-6 transition-colors hover:border-[#00E599]/40">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/20">
                 <FileText size={18} />
               </div>
-              <h4 className="mt-4 font-display text-base font-bold text-[#F8FAFC]">
+              <h4 className="mt-4 font-display text-sm sm:text-base font-bold text-[#F8FAFC]">
                 API & Connector Docs
               </h4>
               <p className="mt-2 text-xs leading-relaxed text-[#94A3B8]">
@@ -928,11 +943,11 @@ export default function Landing() {
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-6 transition-colors hover:border-[#00E599]/40">
+            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-5 sm:p-6 transition-colors hover:border-[#00E599]/40">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/20">
                 <TrendingUp size={18} />
               </div>
-              <h4 className="mt-4 font-display text-base font-bold text-[#F8FAFC]">
+              <h4 className="mt-4 font-display text-sm sm:text-base font-bold text-[#F8FAFC]">
                 The True Profit Playbook
               </h4>
               <p className="mt-2 text-xs leading-relaxed text-[#94A3B8]">
@@ -943,11 +958,11 @@ export default function Landing() {
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-6 transition-colors hover:border-[#00E599]/40">
+            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-5 sm:p-6 transition-colors hover:border-[#00E599]/40">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/20">
                 <Cpu size={18} />
               </div>
-              <h4 className="mt-4 font-display text-base font-bold text-[#F8FAFC]">
+              <h4 className="mt-4 font-display text-sm sm:text-base font-bold text-[#F8FAFC]">
                 Groq LPU Reasoning
               </h4>
               <p className="mt-2 text-xs leading-relaxed text-[#94A3B8]">
@@ -958,11 +973,11 @@ export default function Landing() {
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-6 transition-colors hover:border-[#00E599]/40">
+            <div className="rounded-2xl border border-[#16221B] bg-[#0B110E] p-5 sm:p-6 transition-colors hover:border-[#00E599]/40">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/20">
                 <Compass size={18} />
               </div>
-              <h4 className="mt-4 font-display text-base font-bold text-[#F8FAFC]">
+              <h4 className="mt-4 font-display text-sm sm:text-base font-bold text-[#F8FAFC]">
                 Northstar Goods Demo
               </h4>
               <p className="mt-2 text-xs leading-relaxed text-[#94A3B8]">
@@ -975,31 +990,31 @@ export default function Landing() {
           </div>
 
           {/* Interactive FAQ Accordion */}
-          <div className="mt-16 max-w-3xl">
-            <h3 className="font-display text-xl font-bold text-[#F8FAFC] mb-6 flex items-center gap-2">
-              <HelpCircle size={20} className="text-[#00E599]" />
+          <div className="mt-12 sm:mt-16 max-w-3xl">
+            <h3 className="font-display text-lg sm:text-xl font-bold text-[#F8FAFC] mb-4 sm:mb-6 flex items-center gap-2">
+              <HelpCircle size={18} className="text-[#00E599]" />
               Frequently Asked Questions
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               {FAQS.map((faq, i) => (
                 <div
                   key={faq.q}
-                  className="rounded-2xl border border-[#16221B] bg-[#0B110E] overflow-hidden transition-colors hover:border-[#1F3327]"
+                  className="rounded-xl sm:rounded-2xl border border-[#16221B] bg-[#0B110E] overflow-hidden transition-colors hover:border-[#1F3327]"
                 >
                   <button
                     onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
-                    className="flex w-full items-center justify-between p-5 text-left text-sm font-semibold text-[#F8FAFC]"
+                    className="flex w-full items-center justify-between p-4 sm:p-5 text-left text-xs sm:text-sm font-semibold text-[#F8FAFC]"
                   >
                     <span>{faq.q}</span>
                     <ChevronDown
                       size={16}
-                      className={`text-[#94A3B8] transition-transform duration-200 ${
+                      className={`shrink-0 ml-2 text-[#94A3B8] transition-transform duration-200 ${
                         expandedFaq === i ? "rotate-180 text-[#00E599]" : ""
                       }`}
                     />
                   </button>
                   {expandedFaq === i && (
-                    <div className="px-5 pb-5 pt-1 text-xs leading-relaxed text-[#94A3B8] border-t border-[#16221B]/50">
+                    <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs leading-relaxed text-[#94A3B8] border-t border-[#16221B]/50">
                       {faq.a}
                     </div>
                   )}
@@ -1011,9 +1026,9 @@ export default function Landing() {
       </section>
 
       {/* 8. Sandbox Demo Evaluation Banner */}
-      <section className="border-t border-[#16221B] py-20">
+      <section className="border-t border-[#16221B] py-14 sm:py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 text-center lg:px-8">
-          <div className="rounded-3xl border border-[#16221B] bg-[#070C0A] p-8 sm:p-14 relative overflow-hidden">
+          <div className="rounded-2xl sm:rounded-3xl border border-[#16221B] bg-[#070C0A] p-6 sm:p-14 relative overflow-hidden">
             <div
               className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-20"
               style={{
@@ -1021,17 +1036,17 @@ export default function Landing() {
               }}
               aria-hidden="true"
             />
-            <span className="font-mono text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
+            <span className="font-mono text-[11px] sm:text-xs font-semibold tracking-[0.25em] text-[#00E599] uppercase">
               Immediate Evaluation
             </span>
-            <h2 className="mt-3 font-display text-2xl font-extrabold text-[#F8FAFC] sm:text-4xl">
+            <h2 className="mt-2 sm:mt-3 font-display text-xl sm:text-3xl lg:text-4xl font-extrabold text-[#F8FAFC]">
               Experience AHONIX With Real Benchmark Data
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-xs sm:text-sm leading-relaxed text-[#94A3B8]">
+            <p className="mx-auto mt-3 sm:mt-4 max-w-xl text-xs sm:text-sm leading-relaxed text-[#94A3B8]">
               No integrations or store credentials needed. Launch into our pre-loaded
               Northstar Goods workspace and test True Profit reconciliation live.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
               <Link
                 to="/register"
                 className="rounded-full bg-[#00E599] px-7 py-3.5 text-xs font-bold text-[#040706] shadow-lg shadow-[#00E599]/20 transition-all hover:bg-[#00c984] hover:scale-[1.02]"
@@ -1050,10 +1065,10 @@ export default function Landing() {
       </section>
 
       {/* 9. Refined Editorial Footer */}
-      <footer className="border-t border-[#16221B] bg-[#040706] py-12 text-xs text-[#64748B]">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 sm:px-6 sm:flex-row lg:px-8">
+      <footer className="border-t border-[#16221B] bg-[#040706] py-10 sm:py-12 text-xs text-[#64748B]">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 sm:gap-6 px-4 sm:px-6 sm:flex-row lg:px-8">
           <Logo size={24} />
-          <div className="flex flex-wrap items-center justify-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             <a href="#features" onClick={(e) => scrollToSection(e, "features")} className="hover:text-[#F8FAFC] transition-colors">
               Features
             </a>

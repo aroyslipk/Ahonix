@@ -107,3 +107,4 @@ android-sdk/
 **/.emergent/
 frontend/node_modules/.cache/default-development/0.pack
 frontend/node_modules/.cache/default-development/7.pack
+frontend/node_modules/.cache/default-development/9.pack
