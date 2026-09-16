@@ -130,6 +130,59 @@ async def create_workspace(body: CreateWorkspace, user: dict = Depends(get_curre
         analytics = build_workspace_analytics(store_name=name, currency=body.currency)
         analytics["workspace_id"] = ws_id
         await db.workspace_data.insert_one({**analytics})
+    else:
+        # Create empty clean shell so all endpoints work seamlessly
+        starter = {
+            "workspace_id": ws_id,
+            "meta": {
+                "store_name": name,
+                "currency": body.currency,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "is_demo": False,
+            },
+            "kpis": [
+                {"label": "Gross Revenue", "value": 0.0, "format": "currency", "change": 0.0, "tooltip": "Awaiting store connection"},
+                {"label": "True Profit", "value": 0.0, "format": "currency", "change": 0.0, "tooltip": "Awaiting store connection"},
+                {"label": "True Margin", "value": 0.0, "format": "percent", "change": 0.0, "tooltip": "Awaiting store connection"},
+                {"label": "Ad Spend", "value": 0.0, "format": "currency", "change": 0.0, "tooltip": "Awaiting ad connectors"},
+                {"label": "Blended ROAS", "value": 0.0, "format": "multiple", "change": 0.0, "tooltip": "Awaiting ad connectors"},
+            ],
+            "profit": {
+                "gross_revenue": 0.0,
+                "steps": [
+                    {"label": "Gross Revenue", "value": 0.0, "type": "total"},
+                    {"label": "Discounts", "value": 0.0, "type": "cost"},
+                    {"label": "Returns", "value": 0.0, "type": "cost"},
+                    {"label": "Product Cost (COGS)", "value": 0.0, "type": "cost"},
+                    {"label": "Shipping", "value": 0.0, "type": "cost"},
+                    {"label": "Advertising", "value": 0.0, "type": "cost"},
+                    {"label": "Payment Fees", "value": 0.0, "type": "cost"},
+                    {"label": "Marketplace Fees", "value": 0.0, "type": "cost"},
+                    {"label": "True Profit", "value": 0.0, "type": "result"},
+                ],
+                "gross_profit": 0.0,
+                "contribution_margin": 0.0,
+                "true_profit": 0.0,
+                "margin": 0.0,
+                "product_profit": [],
+            },
+            "sales": {"revenue": 0.0, "orders": 0, "aov": 0.0, "units": 0},
+            "products": [],
+            "marketing": {"total_spend": 0.0, "roas": 0.0, "campaigns": []},
+            "channels": {
+                "payments": {"total_fees": 0.0, "avg_fee_pct": 2.9, "methods": []}
+            },
+            "priorities": [],
+            "briefing": {
+                "headline": f"{name} initialized in Live Production Mode.",
+                "subline": "Connect your Shopify store, Meta Ads, Google Ads, or Stripe in Settings to begin live data ingestion.",
+                "action": "Go to Settings",
+            },
+            "insights": [],
+            "weekly": [],
+        }
+        await db.workspace_data.insert_one(starter)
+
     await db.users.update_one({"user_id": user["user_id"]},
                               {"$set": {"active_workspace_id": ws_id, "onboarding_completed": True}})
     return {"workspace_id": ws_id, "name": name, "is_demo": is_demo}
@@ -148,6 +201,47 @@ async def select_workspace(workspace_id: str, user: dict = Depends(get_current_u
         raise HTTPException(status_code=404, detail="Workspace not found")
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"active_workspace_id": workspace_id}})
     return {"ok": True}
+
+
+@api.delete("/workspaces/{workspace_id}")
+async def delete_workspace(workspace_id: str, user: dict = Depends(get_current_user)):
+    ws = await db.workspaces.find_one({"workspace_id": workspace_id, "user_id": user["user_id"]})
+    if not ws:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    count = await db.workspaces.count_documents({"user_id": user["user_id"]})
+    if count <= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete your only workspace. Please create another workspace first."
+        )
+
+    # Clean up workspace from database
+    await db.workspaces.delete_one({"workspace_id": workspace_id})
+    await db.workspace_data.delete_one({"workspace_id": workspace_id})
+    await db.shopify_connections.delete_many({"workspace_id": workspace_id})
+    await db.meta_connections.delete_many({"workspace_id": workspace_id})
+    await db.google_connections.delete_many({"workspace_id": workspace_id})
+    await db.stripe_merchant_connections.delete_many({"workspace_id": workspace_id})
+    await db.subscriptions.delete_many({"workspace_id": workspace_id})
+    await db.shopify_oauth_states.delete_many({"workspace_id": workspace_id})
+
+    # If deleted workspace was active, switch to a remaining workspace
+    new_active_id = user.get("active_workspace_id")
+    if user.get("active_workspace_id") == workspace_id:
+        remaining_ws = await db.workspaces.find_one({"user_id": user["user_id"]}, {"_id": 0})
+        new_active_id = remaining_ws["workspace_id"] if remaining_ws else None
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"active_workspace_id": new_active_id}}
+        )
+
+    return {
+        "ok": True,
+        "deleted_workspace_id": workspace_id,
+        "active_workspace_id": new_active_id,
+        "message": f"Workspace '{ws.get('name', 'Workspace')}' deleted successfully."
+    }
 
 
 # ----------------------------------------------------------------------------

@@ -31,6 +31,14 @@ export default function Register() {
 
   const strength = getPasswordStrength();
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err) {
+      setError(err);
+    }
+  }, []);
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");

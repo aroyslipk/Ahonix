@@ -227,15 +227,24 @@ async def login(body: LoginBody, request: Request, response: Response, _rl=Depen
     return _public_user(user)
 
 
+@router.get("/google/status")
+async def google_auth_status():
+    """Check if Google OAuth is configured on this server."""
+    cfg = get_google_auth_config()
+    return {"configured": bool(cfg["client_id"])}
+
+
 @router.get("/google/login")
 async def google_login(request: Request, redirect: str = "/app/overview"):
     """Initiate direct Google OAuth 2.0 flow for login/signup."""
     cfg = get_google_auth_config()
+    frontend_url = cfg["frontend_url"]
     if not cfg["client_id"]:
-        logger.error("Google OAuth login requested but GOOGLE_CLIENT_ID / GOOGLE_ADS_CLIENT_ID is not configured.")
-        raise HTTPException(
-            status_code=503,
-            detail="Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing)."
+        logger.warning("Google OAuth login requested but GOOGLE_CLIENT_ID is not configured.")
+        error_msg = "Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing in Render). Please sign in with email and password."
+        return RedirectResponse(
+            url=f"{frontend_url}/login?error={quote_plus(error_msg)}",
+            status_code=302
         )
 
     state = secrets.token_urlsafe(32)

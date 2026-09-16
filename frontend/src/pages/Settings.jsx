@@ -24,6 +24,7 @@ import {
   Shield,
   Zap,
   X,
+  Trash2,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -393,6 +394,16 @@ export default function Settings() {
   const [googleLoading, setGoogleLoading] = React.useState(true);
   const [googleAccounts, setGoogleAccounts] = React.useState(null);
   const [googleAccountsLoading, setGoogleAccountsLoading] = React.useState(false);
+
+  // Workspace management state
+  const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = React.useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = React.useState("");
+  const [newWorkspaceType, setNewWorkspaceType] = React.useState("DTC Brand");
+  const [newWorkspaceCurrency, setNewWorkspaceCurrency] = React.useState("USD");
+  const [newWorkspaceMode, setNewWorkspaceMode] = React.useState("real");
+  const [newWorkspaceChannels, setNewWorkspaceChannels] = React.useState(["Shopify"]);
+  const [workspaceCreating, setWorkspaceCreating] = React.useState(false);
+  const [deletingWorkspaceId, setDeletingWorkspaceId] = React.useState(null);
 
   // Stripe SaaS Billing state
   const [billingStatus, setBillingStatus] = React.useState(null);
@@ -838,6 +849,53 @@ export default function Settings() {
     }
   };
 
+  const handleCreateCustomWorkspace = async (e) => {
+    e.preventDefault();
+    if (!newWorkspaceName.trim()) {
+      toast.error("Please enter a workspace name.");
+      return;
+    }
+    setWorkspaceCreating(true);
+    try {
+      const { data } = await api.post("/workspaces", {
+        name: newWorkspaceName.trim(),
+        business_type: newWorkspaceType,
+        currency: newWorkspaceCurrency,
+        mode: newWorkspaceMode,
+        channels: newWorkspaceChannels,
+      });
+      toast.success(`Workspace "${data.name}" created successfully!`);
+      setShowCreateWorkspaceModal(false);
+      setNewWorkspaceName("");
+      await qc.invalidateQueries();
+      navigate("/app/overview");
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to create workspace.");
+    } finally {
+      setWorkspaceCreating(false);
+    }
+  };
+
+  const handleDeleteWorkspace = async (wsId, wsName) => {
+    if (workspaces.length <= 1) {
+      toast.error("Cannot delete your only workspace. Please create another workspace first.");
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to permanently delete "${wsName}"?\nAll associated data and connections will be removed.`)) {
+      return;
+    }
+    setDeletingWorkspaceId(wsId);
+    try {
+      const { data } = await api.delete(`/workspaces/${wsId}`);
+      toast.success(data?.message || `Workspace "${wsName}" deleted.`);
+      await qc.invalidateQueries();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to delete workspace.");
+    } finally {
+      setDeletingWorkspaceId(null);
+    }
+  };
+
   const createDemo = async () => {
     setCreating(true);
     try {
@@ -879,17 +937,26 @@ export default function Settings() {
 
       {/* Workspaces Switcher */}
       <Card className="p-6 border-[#16221B] bg-[#070C0A]">
-        <div className="flex items-center justify-between">
-          <SectionHeader title="Available Workspaces" subtitle="Switch tenant or spin up a simulated sandbox" />
-          <Button
-            onClick={createDemo}
-            disabled={creating}
-            variant="outline"
-            className="border-[#16221B] bg-[#0B110E] text-xs font-semibold text-[#F8FAFC] hover:bg-[#121C16] hover:border-[#1F3327] rounded-xl"
-            data-testid="create-demo-btn"
-          >
-            {creating ? <Loader2 className="animate-spin" size={14} /> : <><Plus size={14} className="mr-1.5 text-[#00E599]" /> New Demo Workspace</>}
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <SectionHeader title="Available Workspaces" subtitle="Manage your production brands, client tenants, or sandbox environments" />
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Button
+              onClick={() => setShowCreateWorkspaceModal(true)}
+              className="bg-[#00E599] text-xs font-bold text-[#040706] hover:bg-[#00c984] rounded-xl px-3.5"
+              data-testid="create-workspace-btn"
+            >
+              <Plus size={14} className="mr-1" /> New Workspace
+            </Button>
+            <Button
+              onClick={createDemo}
+              disabled={creating}
+              variant="outline"
+              className="border-[#16221B] bg-[#0B110E] text-xs font-semibold text-[#CBD5E1] hover:bg-[#121C16] hover:border-[#1F3327] rounded-xl"
+              data-testid="create-demo-btn"
+            >
+              {creating ? <Loader2 className="animate-spin" size={14} /> : <><Sparkles size={13} className="mr-1.5 text-[#00E599]" /> Quick Demo</>}
+            </Button>
+          </div>
         </div>
         <div className="mt-4 space-y-2.5">
           {workspaces.map((w) => (
@@ -898,29 +965,60 @@ export default function Settings() {
               className="flex items-center justify-between rounded-xl border border-[#16221B] bg-[#0B110E] px-4 py-3 transition-all hover:border-[#1F3327]"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#00E599]/30 bg-[#00E599]/15 text-xs font-bold text-[#00E599]">
-                  {w.name.slice(0, 1)}
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-bold ${
+                  w.is_demo
+                    ? "border-sky-500/30 bg-sky-500/10 text-sky-400"
+                    : "border-[#00E599]/30 bg-[#00E599]/15 text-[#00E599]"
+                }`}>
+                  {w.name.slice(0, 1).toUpperCase()}
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-[#F8FAFC]">{w.name}</p>
-                  <p className="text-xs text-[#64748B]">{w.is_demo ? "Demo Sandbox" : "Live Production"}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-[#F8FAFC]">{w.name}</p>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
+                      w.is_demo
+                        ? "border-sky-500/30 bg-sky-500/10 text-sky-400"
+                        : "border-emerald-500/30 bg-emerald-500/10 text-[#00E599]"
+                    }`}>
+                      {w.is_demo ? "Demo Sandbox" : "Live Production"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    {w.business_type || "DTC Brand"} · Currency: {w.currency || "USD"}
+                  </p>
                 </div>
               </div>
-              {w.workspace_id === workspace?.workspace_id ? (
-                <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-[#00E599]">
-                  <Check size={13} /> Active
-                </span>
-              ) : (
+
+              <div className="flex items-center gap-2">
+                {w.workspace_id === workspace?.workspace_id ? (
+                  <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-[#00E599]">
+                    <Check size={13} /> Active
+                  </span>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => switchTo(w.workspace_id)}
+                    disabled={switching === w.workspace_id}
+                    variant="ghost"
+                    className="text-xs text-[#94A3B8] hover:bg-[#121C16] hover:text-[#F8FAFC] rounded-lg"
+                  >
+                    {switching === w.workspace_id ? <Loader2 className="animate-spin" size={13} /> : "Switch"}
+                  </Button>
+                )}
+
+                {/* Delete Workspace Button */}
                 <Button
-                  size="sm"
-                  onClick={() => switchTo(w.workspace_id)}
-                  disabled={switching === w.workspace_id}
+                  size="icon"
                   variant="ghost"
-                  className="text-xs text-[#94A3B8] hover:bg-[#121C16] hover:text-[#F8FAFC] rounded-lg"
+                  onClick={() => handleDeleteWorkspace(w.workspace_id, w.name)}
+                  disabled={workspaces.length <= 1 || deletingWorkspaceId === w.workspace_id}
+                  className="h-8 w-8 text-[#64748B] hover:text-rose-400 hover:bg-rose-950/30 rounded-lg disabled:opacity-30"
+                  title={workspaces.length <= 1 ? "Cannot delete your only workspace" : "Delete workspace"}
+                  data-testid={`delete-workspace-${w.workspace_id}`}
                 >
-                  {switching === w.workspace_id ? <Loader2 className="animate-spin" size={13} /> : "Switch"}
+                  {deletingWorkspaceId === w.workspace_id ? <Loader2 className="animate-spin" size={13} /> : <Trash2 size={14} />}
                 </Button>
-              )}
+              </div>
             </div>
           ))}
         </div>
@@ -1576,6 +1674,155 @@ export default function Settings() {
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+      {/* Create Workspace Modal */}
+      {showCreateWorkspaceModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in"
+          onClick={() => setShowCreateWorkspaceModal(false)}
+        >
+          <div
+            className="relative w-full max-w-lg rounded-2xl border border-[#16221B] bg-[#070C0A] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowCreateWorkspaceModal(false)}
+              className="absolute right-5 top-5 rounded-lg border border-[#16221B] bg-[#0B110E] p-1.5 text-[#94A3B8] hover:text-white"
+              aria-label="Close modal"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/30">
+                <Building2 size={18} />
+              </span>
+              <div>
+                <h3 className="font-display text-lg font-bold text-[#F8FAFC]">
+                  Create New Workspace
+                </h3>
+                <p className="text-xs text-[#94A3B8]">
+                  Deploy an isolated tenant for your brand or store.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateCustomWorkspace} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#94A3B8] mb-1.5">
+                  Store / Workspace Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newWorkspaceName}
+                  onChange={(e) => setNewWorkspaceName(e.target.value)}
+                  placeholder="e.g. Apex Athletics, Nomad Goods"
+                  className="w-full rounded-xl border border-[#16221B] bg-[#0B110E] px-3.5 py-2.5 text-xs text-[#F8FAFC] placeholder-[#64748B] focus:border-[#00E599] focus:outline-none"
+                  data-testid="workspace-name-input"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#94A3B8] mb-1.5">
+                    Operating Model
+                  </label>
+                  <select
+                    value={newWorkspaceType}
+                    onChange={(e) => setNewWorkspaceType(e.target.value)}
+                    className="w-full rounded-xl border border-[#16221B] bg-[#0B110E] px-3 py-2.5 text-xs text-[#F8FAFC] focus:border-[#00E599] focus:outline-none"
+                  >
+                    <option value="DTC Brand">DTC Brand</option>
+                    <option value="Marketplace Seller">Marketplace Seller</option>
+                    <option value="Omnichannel Brand">Omnichannel Brand</option>
+                    <option value="Agency / Multi-Store">Agency / Multi-Store</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#94A3B8] mb-1.5">
+                    Functional Currency
+                  </label>
+                  <select
+                    value={newWorkspaceCurrency}
+                    onChange={(e) => setNewWorkspaceCurrency(e.target.value)}
+                    className="w-full rounded-xl border border-[#16221B] bg-[#0B110E] px-3 py-2.5 text-xs text-[#F8FAFC] focus:border-[#00E599] focus:outline-none"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="CAD">CAD ($)</option>
+                    <option value="AUD">AUD ($)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#94A3B8] mb-1.5">
+                  Telemetry Mode
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setNewWorkspaceMode("real")}
+                    className={`rounded-xl border p-3 text-left transition-all ${
+                      newWorkspaceMode === "real"
+                        ? "border-[#00E599] bg-emerald-500/10 text-[#F8FAFC]"
+                        : "border-[#16221B] bg-[#0B110E] text-[#94A3B8] hover:border-[#1F3327]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#F8FAFC]">Live Production</span>
+                      {newWorkspaceMode === "real" && <Check size={14} className="text-[#00E599]" />}
+                    </div>
+                    <p className="text-[11px] text-[#64748B] mt-1">
+                      Ready to connect real Shopify, Stripe, or Ads data.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewWorkspaceMode("demo")}
+                    className={`rounded-xl border p-3 text-left transition-all ${
+                      newWorkspaceMode === "demo"
+                        ? "border-sky-400 bg-sky-500/10 text-[#F8FAFC]"
+                        : "border-[#16221B] bg-[#0B110E] text-[#94A3B8] hover:border-[#1F3327]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#F8FAFC]">Demo Sandbox</span>
+                      {newWorkspaceMode === "demo" && <Check size={14} className="text-sky-400" />}
+                    </div>
+                    <p className="text-[11px] text-[#64748B] mt-1">
+                      Pre-populated with DTC order & spend benchmarks.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-[#16221B]">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateWorkspaceModal(false)}
+                  className="border-[#16221B] bg-[#0B110E] text-xs text-[#94A3B8] hover:text-white rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={workspaceCreating || !newWorkspaceName.trim()}
+                  className="bg-[#00E599] text-xs font-bold text-[#040706] hover:bg-[#00c984] rounded-xl px-4"
+                  data-testid="submit-create-workspace"
+                >
+                  {workspaceCreating ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Plus size={14} className="mr-1.5" />}
+                  {workspaceCreating ? "Creating..." : "Create Workspace"}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -130,7 +130,9 @@ export function AuthShell({ title, subtitle, children, footer }) {
 }
 
 export function GoogleButton({ label = "Continue with Google" }) {
-  const onClick = () => {
+  const [checking, setChecking] = React.useState(false);
+
+  const onClick = async () => {
     const isEmergent =
       typeof window !== "undefined" &&
       window.location.hostname.endsWith(".preview.emergentagent.com");
@@ -145,6 +147,23 @@ export function GoogleButton({ label = "Continue with Google" }) {
     // Direct Google OAuth flow for Staging and Production
     const rawBackendUrl = process.env.REACT_APP_BACKEND_URL;
     const backendUrl = rawBackendUrl ? rawBackendUrl.replace(/\/$/, "") : "";
+
+    setChecking(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/auth/google/status`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.configured === false) {
+          alert("Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing in Render environment variables). Please sign in using email and password, or add GOOGLE_CLIENT_ID to Render.");
+          setChecking(false);
+          return;
+        }
+      }
+    } catch {
+      // Proceed to standard backend redirect if probe is inconclusive
+    }
+    setChecking(false);
+
     window.location.href = `${backendUrl}/api/auth/google/login?redirect=${encodeURIComponent("/app/overview")}`;
   };
 
@@ -152,7 +171,8 @@ export function GoogleButton({ label = "Continue with Google" }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#16221B] bg-[#0B110E] py-3 text-xs font-semibold text-[#F8FAFC] transition-all duration-150 hover:border-[#00E599]/40 hover:bg-[#0F1713]"
+      disabled={checking}
+      className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#16221B] bg-[#0B110E] py-3 text-xs font-semibold text-[#F8FAFC] transition-all duration-150 hover:border-[#00E599]/40 hover:bg-[#0F1713] disabled:opacity-50"
       data-testid="google-auth-btn"
     >
       <svg width="18" height="18" viewBox="0 0 24 24">
@@ -161,7 +181,7 @@ export function GoogleButton({ label = "Continue with Google" }) {
         <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
       </svg>
-      {label}
+      {checking ? "Checking Google Auth..." : label}
     </button>
   );
 }

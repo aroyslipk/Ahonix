@@ -15,6 +15,14 @@ export default function Login() {
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err) {
+      setError(err);
+    }
+  }, []);
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
