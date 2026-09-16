@@ -742,42 +742,129 @@ class AskBody(BaseModel):
     session_id: str | None = Field(None, max_length=100)
 
 
-def _context_summary(data: dict) -> str:
+def _context_summary(data: dict | None) -> str:
     if not data:
-        return "No connected data yet."
-    k = {x["id"]: x for x in data["kpis"]}
-    p = data["profit"]
-    inv = data["inventory"]
-    mk = data["marketing"]
-    ret = data["returns"]
-    top_ret = ret["by_product"][0]
-    crit = inv["items"][0]
-    return json.dumps({
-        "store": data["store_name"], "currency": data["currency"],
+        return json.dumps({
+            "status": "Awaiting merchant data ingestion",
+            "message": "No workspace telemetry available yet. Integrations are awaiting connection in Settings."
+        })
+
+    meta = data.get("meta") or {}
+    store_name = data.get("store_name") or meta.get("store_name") or "Merchant Store"
+    currency = data.get("currency") or meta.get("currency") or "USD"
+    is_demo = meta.get("is_demo", True if "ws_demo" in str(data.get("workspace_id", "")) else False)
+
+    # Safe KPI extraction (supports id-based and label-based)
+    kpis = data.get("kpis") or []
+    k_map = {}
+    for x in kpis:
+        if isinstance(x, dict):
+            if "id" in x and x["id"]:
+                k_map[str(x["id"])] = x
+            if "label" in x and x["label"]:
+                clean_label = str(x["label"]).lower().replace(" ", "_")
+                k_map[clean_label] = x
+
+    def get_kpi_val(key, default=0.0):
+        item = k_map.get(key)
+        if item is not None and isinstance(item, dict):
+            return item.get("value", default)
+        return default
+
+    def get_kpi_change(key, default=0.0):
+        item = k_map.get(key)
+        if item is not None and isinstance(item, dict):
+            return item.get("change", default)
+        return default
+
+    # Profit
+    p = data.get("profit") or {}
+    p_insight = p.get("insight") or {}
+    steps = p.get("steps") or []
+    cost_breakdown = {
+        s.get("label", f"step_{i}"): s.get("value", 0.0)
+        for i, s in enumerate(steps) if isinstance(s, dict)
+    }
+
+    # Sales
+    s = data.get("sales") or {}
+    orders_count = get_kpi_val("orders", s.get("orders", 0))
+    revenue_val = get_kpi_val("revenue", s.get("revenue", 0.0))
+    revenue_change = get_kpi_change("revenue", 0.0)
+    true_profit_val = get_kpi_val("true-profit", p.get("true_profit", 0.0))
+    profit_change = get_kpi_change("true-profit", 0.0)
+    profit_margin = p.get("margin", 0.0)
+    aov_val = get_kpi_val("aov", s.get("aov", 0.0))
+
+    # Inventory
+    inv = data.get("inventory") or {}
+    inv_items = inv.get("items") or []
+    crit = inv_items[0] if inv_items and isinstance(inv_items[0], dict) else None
+
+    # Returns
+    ret = data.get("returns") or {}
+    ret_by_prod = ret.get("by_product") or []
+    top_ret = ret_by_prod[0] if ret_by_prod and isinstance(ret_by_prod[0], dict) else None
+    return_rate_val = get_kpi_val("return-rate", ret.get("overall_rate", 0.0))
+
+    # Marketing
+    mk = data.get("marketing") or {}
+    campaigns = mk.get("campaigns") or []
+    roas_val = get_kpi_val("marketing-eff", mk.get("roas", 0.0))
+
+    # Markets
+    markets = data.get("markets") or []
+    top_market = markets[0].get("country") if markets and isinstance(markets[0], dict) else None
+
+    has_activity = (orders_count > 0 or revenue_val > 0 or len(campaigns) > 0 or len(inv_items) > 0)
+
+    summary = {
+        "store": store_name,
+        "currency": currency,
+        "is_demo_data": bool(is_demo),
+        "data_status": "Active store dataset" if has_activity else "Live store initialized (Awaiting sales/order telemetry ingestion)",
+        "has_recorded_activity": bool(has_activity),
         "period": "last 4 weeks vs prior 4 weeks",
-        "revenue": k["revenue"]["value"], "revenue_change_pct": k["revenue"]["change"],
-        "true_profit": k["true-profit"]["value"], "profit_change_pct": k["true-profit"]["change"],
-        "profit_margin_pct": p["margin"], "orders": k["orders"]["value"],
-        "aov": k["aov"]["value"], "return_rate_pct": k["return-rate"]["value"],
-        "blended_roas": k["marketing-eff"]["value"],
-        "best_seller": p["insight"]["best_seller"],
-        "most_profitable": p["insight"]["most_profitable"],
-        "best_margin_product": p["insight"]["best_margin"],
-        "top_return_product": {"name": top_ret["name"], "rate_pct": top_ret["return_rate"], "cost": top_ret["cost"]},
-        "critical_inventory": {"name": crit["name"], "days_left": crit["days_left"],
-                               "stockout": crit["stockout_date"], "reorder_qty": crit["reorder_qty"]},
-        "marketing_paradox": mk["paradox"],
-        "campaigns": [{"name": c["name"], "roas": c["roas"], "contribution": c["contribution"]} for c in mk["campaigns"]],
-        "top_market_opportunity": data["markets"][0]["country"],
-        "cost_breakdown": {s["label"]: s["value"] for s in p["steps"]},
-    }, default=str)
+        "revenue": revenue_val,
+        "revenue_change_pct": revenue_change,
+        "true_profit": true_profit_val,
+        "profit_change_pct": profit_change,
+        "profit_margin_pct": profit_margin,
+        "orders": orders_count,
+        "aov": aov_val,
+        "return_rate_pct": return_rate_val,
+        "blended_roas": roas_val,
+        "best_seller": p_insight.get("best_seller"),
+        "most_profitable": p_insight.get("most_profitable"),
+        "best_margin_product": p_insight.get("best_margin"),
+        "top_return_product": {
+            "name": top_ret.get("name"),
+            "rate_pct": top_ret.get("return_rate"),
+            "cost": top_ret.get("cost"),
+        } if top_ret else None,
+        "critical_inventory": {
+            "name": crit.get("name"),
+            "days_left": crit.get("days_left"),
+            "stockout": crit.get("stockout_date"),
+            "reorder_qty": crit.get("reorder_qty"),
+        } if crit else None,
+        "marketing_paradox": mk.get("paradox"),
+        "campaigns": [
+            {"name": c.get("name"), "roas": c.get("roas"), "contribution": c.get("contribution")}
+            for c in campaigns if isinstance(c, dict)
+        ],
+        "top_market_opportunity": top_market,
+        "cost_breakdown": cost_breakdown,
+    }
+    return json.dumps(summary, default=str)
 
 
 SYSTEM_PROMPT = """You are AHONIX, an AI commerce analyst inside the AHONIX Commerce OS. \
 You are NOT a generic chatbot. You are a sharp, concise commerce analyst who reasons over the merchant's own data.
 
-You will be given a JSON snapshot of the merchant's demo commerce data. Answer the user's question \
-ONLY using that data. Never invent external facts or claim real-world certainty. This is DEMO data.
+You will be given a JSON snapshot of the merchant's commerce data (which may be active demo data, or a live merchant store awaiting or synchronizing data). Answer the user's question ONLY using that data.
+If has_recorded_activity is false or values are 0 / null, explicitly inform the merchant that their store currently has no recorded transactions or order activity yet, and recommend connecting their store (Shopify, Meta Ads, Google Ads) in Settings.
+Under AHONIX Zero Fabrication Policy: Never invent external facts, fictional numbers, or claim certainty on unrecorded data.
 
 Always respond in GitHub-flavoured markdown using EXACTLY these sections (omit a section only if truly not applicable):
 
@@ -794,7 +881,7 @@ A concise 1-2 sentence explanation of *why*.
 The single most valuable next action.
 
 ### Expected Impact
-An estimated or projected figure, clearly labelled as Estimated/Projected (this is demo data).
+An estimated or projected figure, clearly labelled as Estimated/Projected (or Next Step if awaiting telemetry).
 
 Keep it tight and executive. Use the currency and figures from the snapshot. Do not use tables."""
 
@@ -812,7 +899,19 @@ async def ask_ahonix(body: AskBody, user: dict = Depends(get_current_user), _rl=
         raise HTTPException(status_code=422, detail="Question cannot be empty.")
     ws, data = await get_workspace_data(user)
     session_id = body.session_id or f"ask_{uuid.uuid4().hex[:10]}"
-    context = _context_summary(data)
+    try:
+        context = _context_summary(data)
+    except Exception as e:
+        logger.exception("Error generating context summary (%s): %s", type(e).__name__, e)
+        store_name = ws.get("name", "Store")
+        context = json.dumps({
+            "store": store_name,
+            "has_recorded_activity": False,
+            "data_status": "Awaiting initial data sync",
+            "revenue": 0.0,
+            "orders": 0,
+            "true_profit": 0.0,
+        })
 
     try:
         await db.chat_messages.insert_one({

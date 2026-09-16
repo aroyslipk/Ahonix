@@ -408,3 +408,64 @@ class TestAskEndpointHttp:
             assert "data:" in body
             assert "Revenue is $10,000." in body
             assert '"done": true' in body
+
+    def test_real_workspace_ask_endpoint_does_not_500(self, setup_client, monkeypatch):
+        monkeypatch.setenv("GROQ_API_KEY", "gsk_test_groq_live")
+        mock_starter = {
+            "workspace_id": "ws_test_real",
+            "meta": {"store_name": "Fresh Store", "currency": "USD", "is_demo": False},
+            "kpis": [{"label": "Gross Revenue", "value": 0.0}],
+            "profit": {"gross_revenue": 0.0, "steps": []},
+            "sales": {"revenue": 0.0, "orders": 0},
+            "products": [],
+            "marketing": {"total_spend": 0.0, "campaigns": []},
+        }
+        mock_ws = {"workspace_id": "ws_test_real", "name": "Fresh Store"}
+        groq_lines = [
+            'data: {"choices": [{"delta": {"content": "### Answer\\nNo orders recorded yet."}}]}',
+            'data: [DONE]',
+        ]
+        mock_resp = MockStreamResponse(200, lines=groq_lines)
+        with patch("server.get_workspace_data", new=AsyncMock(return_value=(mock_ws, mock_starter))):
+            with patch("httpx.AsyncClient.stream", return_value=mock_resp):
+                res = setup_client.post("/api/ask", json={"question": "What is my revenue?"})
+                assert res.status_code == 200
+                assert "No orders recorded yet." in res.text
+
+
+class TestContextSummaryAndRealWorkspaces:
+    def test_context_summary_none(self):
+        from server import _context_summary
+        res = json.loads(_context_summary(None))
+        assert "status" in res or "message" in res
+
+    def test_context_summary_real_workspace_starter(self):
+        from server import _context_summary
+        starter = {
+            "workspace_id": "ws_test_real",
+            "meta": {
+                "store_name": "Fresh Store",
+                "currency": "USD",
+                "is_demo": False,
+            },
+            "kpis": [
+                {"label": "Gross Revenue", "value": 0.0},
+                {"label": "True Profit", "value": 0.0},
+            ],
+            "profit": {
+                "gross_revenue": 0.0,
+                "steps": [],
+                "margin": 0.0,
+            },
+            "sales": {"revenue": 0.0, "orders": 0},
+            "products": [],
+            "marketing": {"total_spend": 0.0, "campaigns": []},
+        }
+        res_str = _context_summary(starter)
+        res = json.loads(res_str)
+        assert res["store"] == "Fresh Store"
+        assert res["has_recorded_activity"] is False
+        assert res["revenue"] == 0.0
+        assert res["orders"] == 0
+
+

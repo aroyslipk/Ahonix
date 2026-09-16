@@ -74,7 +74,31 @@ export function AskAhonix() {
         });
         return;
       }
-      if (!res.ok || !res.body) throw new Error("stream failed");
+      if (res.status === 401) {
+        setMessages((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = {
+            role: "assistant",
+            content: "⚠️ Your session has expired. Please refresh the page and sign in again.",
+          };
+          return copy;
+        });
+        return;
+      }
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        const errorMsg = err?.detail || (res.status === 503 ? "Ask AHONIX is currently unconfigured or unavailable." : "I couldn't reach the analyst right now. Please try again.");
+        setMessages((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = {
+            role: "assistant",
+            content: `⚠️ ${errorMsg}`,
+          };
+          return copy;
+        });
+        return;
+      }
+      if (!res.body) throw new Error("stream failed");
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
