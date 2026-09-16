@@ -1,8 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowRight, ArrowLeft, Check, Loader2, Sparkles, Store, ShoppingBag,
-  Globe, Wallet, Database, Rocket, Building2,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Loader2,
+  Compass,
+  Store,
+  ShoppingBag,
+  Globe,
+  Wallet,
+  Database,
+  Rocket,
+  Building2,
+  CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -10,17 +22,49 @@ import { Logo } from "@/components/Logo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const BUSINESS_TYPES = ["DTC Brand", "Marketplace Seller", "Agency", "Dropshipping", "Wholesale / B2B", "Omnichannel Retail"];
-const CHANNELS = ["Shopify", "Amazon", "WooCommerce", "Etsy", "TikTok Shop", "eBay", "Own website"];
-const SIZES = ["Just starting (<$10k/mo)", "Growing ($10k–$100k/mo)", "Scaling ($100k–$1M/mo)", "Established ($1M+/mo)"];
-const COUNTRIES = ["United States", "United Kingdom", "Germany", "Canada", "Australia", "France", "India", "Other"];
+const BUSINESS_TYPES = [
+  "DTC Brand",
+  "Marketplace Seller",
+  "Commerce Agency",
+  "Cross-border / Wholesale",
+  "Omnichannel Enterprise",
+  "High-Growth Startup",
+];
+
+const CHANNELS = [
+  "Shopify",
+  "Amazon",
+  "WooCommerce",
+  "TikTok Shop",
+  "Meta Commerce",
+  "Google Merchant",
+  "Custom Headless API",
+];
+
+const SIZES = [
+  "Emerging (<$25k/mo)",
+  "Scaling ($25k–$100k/mo)",
+  "Mid-Market ($100k–$500k/mo)",
+  "Enterprise ($500k+/mo)",
+];
+
+const COUNTRIES = [
+  "United States",
+  "United Kingdom",
+  "European Union",
+  "Canada",
+  "Australia",
+  "Singapore",
+  "Global / Multi-Region",
+];
+
 const CURRENCIES = [
   { code: "USD", label: "US Dollar ($)" },
   { code: "EUR", label: "Euro (€)" },
   { code: "GBP", label: "British Pound (£)" },
   { code: "CAD", label: "Canadian Dollar (C$)" },
   { code: "AUD", label: "Australian Dollar (A$)" },
-  { code: "INR", label: "Indian Rupee (₹)" },
+  { code: "SGD", label: "Singapore Dollar (S$)" },
 ];
 
 function Chip({ active, children, onClick, testid }) {
@@ -29,15 +73,15 @@ function Chip({ active, children, onClick, testid }) {
       type="button"
       onClick={onClick}
       data-testid={testid}
-      className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-all ${
+      className={`rounded-xl border px-3.5 py-2.5 sm:px-4 sm:py-3 text-left text-xs font-semibold transition-all ${
         active
-          ? "border-emerald-500 bg-emerald-500/10 text-emerald-200"
-          : "border-[#2D334B] bg-[#0F111A] text-[#CBD5E1] hover:border-[#3D4560]"
+          ? "border-[#00E599] bg-[#00E599]/10 text-[#00E599] shadow-[0_0_15px_rgba(0,229,153,0.1)]"
+          : "border-[#16221B] bg-[#070C0A] text-[#CBD5E1] hover:border-[#1F3327] hover:bg-[#0B110E]"
       }`}
     >
       <span className="flex items-center justify-between gap-2">
         {children}
-        {active && <Check size={15} className="text-emerald-400" />}
+        {active && <Check size={14} className="text-[#00E599]" />}
       </span>
     </button>
   );
@@ -52,7 +96,7 @@ export default function Onboarding() {
     name: "Northstar Goods",
     business_type: "DTC Brand",
     channels: ["Shopify", "Amazon"],
-    size: SIZES[2],
+    size: SIZES[1],
     country: "United States",
     currency: "USD",
   });
@@ -77,120 +121,164 @@ export default function Onboarding() {
 
   const steps = [
     {
-      icon: Sparkles,
-      title: `Welcome to AHONIX, ${(user?.name || "there").split(" ")[0]} 👋`,
-      subtitle: "Let's set up your command center. It takes under a minute.",
+      icon: Compass,
+      title: `Welcome to AHONIX, ${(user?.name || "Merchant").split(" ")[0]}`,
+      subtitle: "Configure your operating parameters. Full deployment takes less than 60 seconds.",
       body: (
-        <div className="rounded-2xl border border-[#1E2235] bg-[#0F111A] p-6">
-          <p className="text-sm leading-relaxed text-[#CBD5E1]">
-            AHONIX is your <span className="font-semibold text-emerald-300">AI Commerce OS</span>. We'll ask a few
-            quick questions, then you can explore a fully-loaded demo workspace — no data connection required.
+        <div className="rounded-2xl border border-[#16221B] bg-[#070C0A] p-6">
+          <p className="text-xs leading-relaxed text-[#94A3B8]">
+            AHONIX is the unified <span className="font-semibold text-[#00E599]">Commerce Operating System</span>.
+            We will establish your workspace telemetry, calibrate financial definitions, and initialize your command surface.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {["Detect money leaks", "True profit", "AI recommendations", "Safe simulations"].map((t) => (
-              <span key={t} className="rounded-lg bg-[#161926] px-3 py-1.5 text-xs text-[#94A3B8]">{t}</span>
+          <div className="mt-5 grid grid-cols-2 gap-2.5">
+            {[
+              "True Net Profit Waterfall",
+              "COGS Reconciliation Engine",
+              "Autonomous Money-Leak Detection",
+              "Sandboxed Strategic Interventions",
+            ].map((t) => (
+              <div
+                key={t}
+                className="flex items-center gap-2 rounded-xl border border-[#16221B] bg-[#0B110E] px-3 py-2 text-[11px] font-medium text-[#CBD5E1]"
+              >
+                <CheckCircle2 size={13} className="shrink-0 text-[#00E599]" />
+                <span>{t}</span>
+              </div>
             ))}
           </div>
         </div>
       ),
     },
     {
-      icon: Store, title: "What's your store called?", subtitle: "This names your workspace.",
+      icon: Store,
+      title: "What is your primary brand or store name?",
+      subtitle: "This anchors your primary workspace and tenant identity.",
       body: (
         <Input
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           placeholder="e.g. Northstar Goods"
-          className="border-[#2D334B] bg-[#0F111A] text-lg text-[#F8FAFC]"
+          className="border-[#16221B] bg-[#070C0A] text-base text-[#F8FAFC] placeholder-[#64748B] focus:border-[#00E599] rounded-xl py-3 px-4"
           data-testid="onboarding-store-name"
         />
       ),
     },
     {
-      icon: Building2, title: "What type of business is it?", subtitle: "Pick the closest match.",
+      icon: Building2,
+      title: "Select your operating commerce model",
+      subtitle: "Calibrates default margin thresholds and working capital benchmarks.",
       body: (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {BUSINESS_TYPES.map((t) => (
-            <Chip key={t} active={form.business_type === t} onClick={() => setForm({ ...form, business_type: t })}>{t}</Chip>
+            <Chip key={t} active={form.business_type === t} onClick={() => setForm({ ...form, business_type: t })}>
+              {t}
+            </Chip>
           ))}
         </div>
       ),
     },
     {
-      icon: ShoppingBag, title: "Primary sales channels", subtitle: "Select all that apply.",
+      icon: ShoppingBag,
+      title: "Active distribution channels",
+      subtitle: "Select all storefronts and sales surfaces currently generating GMV.",
       body: (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {CHANNELS.map((c) => (
-            <Chip key={c} active={form.channels.includes(c)} onClick={() => toggleChannel(c)}>{c}</Chip>
+            <Chip key={c} active={form.channels.includes(c)} onClick={() => toggleChannel(c)}>
+              {c}
+            </Chip>
           ))}
         </div>
       ),
     },
     {
-      icon: TrendingWrapper, title: "How big is your business?", subtitle: "Monthly revenue range.",
+      icon: TrendingUp,
+      title: "Current monthly GMV bracket",
+      subtitle: "Enables benchmark-aligned anomaly thresholds and scale metrics.",
       body: (
-        <div className="grid gap-2">
+        <div className="grid gap-2.5">
           {SIZES.map((s) => (
-            <Chip key={s} active={form.size === s} onClick={() => setForm({ ...form, size: s })}>{s}</Chip>
+            <Chip key={s} active={form.size === s} onClick={() => setForm({ ...form, size: s })}>
+              {s}
+            </Chip>
           ))}
         </div>
       ),
     },
     {
-      icon: Globe, title: "Where are you based?", subtitle: "Your primary market.",
+      icon: Globe,
+      title: "Primary jurisdiction & tax domicile",
+      subtitle: "Sets baseline statutory currency and nexus parameters.",
       body: (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {COUNTRIES.map((c) => (
-            <Chip key={c} active={form.country === c} onClick={() => setForm({ ...form, country: c })}>{c}</Chip>
+            <Chip key={c} active={form.country === c} onClick={() => setForm({ ...form, country: c })}>
+              {c}
+            </Chip>
           ))}
         </div>
       ),
     },
     {
-      icon: Wallet, title: "Preferred currency", subtitle: "Used across all metrics.",
+      icon: Wallet,
+      title: "Functional reporting currency",
+      subtitle: "All sales, COGS, marketing spend, and net margins will reconcile in this currency.",
       body: (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {CURRENCIES.map((c) => (
-            <Chip key={c.code} active={form.currency === c.code} onClick={() => setForm({ ...form, currency: c.code })}>{c.label}</Chip>
+            <Chip key={c.code} active={form.currency === c.code} onClick={() => setForm({ ...form, currency: c.code })}>
+              {c.label}
+            </Chip>
           ))}
         </div>
       ),
     },
     {
-      icon: Rocket, title: "You're all set", subtitle: "Choose how you'd like to start.",
+      icon: Rocket,
+      title: "Ready to launch AHONIX",
+      subtitle: "Choose your workspace deployment configuration.",
       body: (
-        <div className="grid gap-4">
+        <div className="grid gap-3.5">
           <button
             onClick={() => finish("demo")}
             disabled={submitting}
-            className="group rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-5 text-left transition-all hover:border-emerald-500 hover:bg-emerald-500/10"
+            className="group rounded-2xl border border-emerald-500/30 bg-[#070C0A] p-5 text-left transition-all hover:border-[#00E599] hover:bg-[#00E599]/5"
             data-testid="onboarding-demo-btn"
           >
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
-                {submitting ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/30">
+                {submitting ? <Loader2 className="animate-spin" size={20} /> : <Compass size={20} />}
               </span>
               <div className="flex-1">
-                <p className="font-display font-bold text-[#F8FAFC]">Explore Demo Workspace</p>
-                <p className="text-sm text-[#94A3B8]">Realistic data for {form.name}. Recommended.</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-display text-sm font-bold text-[#F8FAFC]">Initialize Demo Command Center</p>
+                  <span className="rounded-full border border-[#00E599]/30 bg-[#00E599]/10 px-2 py-0.5 text-[10px] font-semibold text-[#00E599]">
+                    Recommended
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-[#94A3B8]">
+                  Full dataset preloaded for {form.name} with realistic orders, marketing spend, and margin leaks.
+                </p>
               </div>
-              <ArrowRight className="text-emerald-400 transition-transform group-hover:translate-x-1" size={18} />
+              <ArrowRight className="text-[#00E599] transition-transform group-hover:translate-x-1" size={18} />
             </div>
           </button>
 
           <button
             onClick={() => finish("real")}
             disabled={submitting}
-            className="group rounded-2xl border border-[#2D334B] bg-[#0F111A] p-5 text-left transition-all hover:border-[#3D4560]"
+            className="group rounded-2xl border border-[#16221B] bg-[#070C0A] p-5 text-left transition-all hover:border-[#1F3327] hover:bg-[#0B110E]"
             data-testid="onboarding-real-btn"
           >
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#161926] text-[#94A3B8]">
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#16221B] bg-[#0B110E] text-[#94A3B8]">
                 <Database size={20} />
               </span>
               <div className="flex-1">
-                <p className="font-display font-bold text-[#F8FAFC]">Connect my real data</p>
-                <p className="text-sm text-[#94A3B8]">Set up integrations later from Settings.</p>
+                <p className="font-display text-sm font-bold text-[#F8FAFC]">Connect Live Merchant Data</p>
+                <p className="mt-0.5 text-xs text-[#64748B]">
+                  Start with a pristine empty tenant and connect Shopify / Meta / Google Ads directly from Settings.
+                </p>
               </div>
               <ArrowRight className="text-[#64748B] transition-transform group-hover:translate-x-1" size={18} />
             </div>
@@ -205,60 +293,68 @@ export default function Onboarding() {
   const Icon = current.icon;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#08090E] px-4 py-10">
-      <div className="w-full max-w-lg">
+    <div className="flex min-h-screen items-center justify-center bg-[#040706] px-4 py-12 relative overflow-hidden">
+      {/* Background ambient lighting */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[450px] w-[600px] rounded-full bg-emerald-500/5 blur-[120px]" />
+
+      <div className="w-full max-w-xl relative z-10">
         <div className="mb-8 flex items-center justify-between">
           <Logo size={24} />
-          <span className="text-xs text-[#64748B]">Step {step + 1} of {steps.length}</span>
+          <span className="rounded-lg border border-[#16221B] bg-[#070C0A] px-2.5 py-1 text-[11px] font-semibold text-[#64748B]">
+            Step {step + 1} of {steps.length}
+          </span>
         </div>
 
-        <div className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-[#161926]">
+        {/* Progress track */}
+        <div className="mb-6 h-1 w-full overflow-hidden rounded-full bg-[#121C16]">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500"
+            className="h-full rounded-full bg-[#00E599] transition-all duration-500"
             style={{ width: `${((step + 1) / steps.length) * 100}%` }}
           />
         </div>
 
-        <div className="rounded-3xl border border-[#1E2235] bg-[#121420] p-7" data-testid="onboarding-wizard-step">
-          <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-            <Icon size={20} />
-          </span>
-          <h1 className="font-display text-2xl font-bold text-[#F8FAFC]">{current.title}</h1>
-          <p className="mt-1.5 text-sm text-[#94A3B8]">{current.subtitle}</p>
+        {/* Onboarding step card */}
+        <div
+          className="rounded-3xl border border-[#16221B] bg-[#070C0A] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+          data-testid="onboarding-wizard-step"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-[#00E599]">
+              <Icon size={18} />
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">
+              Workspace Provisioning
+            </span>
+          </div>
+
+          <h1 className="font-display text-xl font-bold text-[#F8FAFC] tracking-tight">
+            {current.title}
+          </h1>
+          <p className="mt-1.5 text-xs text-[#94A3B8]">{current.subtitle}</p>
           <div className="mt-6">{current.body}</div>
 
           {!isLast && (
-            <div className="mt-8 flex items-center justify-between">
+            <div className="mt-8 flex items-center justify-between border-t border-[#16221B] pt-5">
               <Button
                 variant="ghost"
                 onClick={() => setStep((s) => Math.max(0, s - 1))}
                 disabled={step === 0}
-                className="text-[#94A3B8] hover:bg-[#161926] hover:text-[#F8FAFC] disabled:opacity-0"
+                className="text-xs font-semibold text-[#94A3B8] hover:bg-[#0B110E] hover:text-[#F8FAFC] disabled:opacity-0"
                 data-testid="onboarding-back"
               >
-                <ArrowLeft size={16} className="mr-1" /> Back
+                <ArrowLeft size={15} className="mr-1.5" /> Previous
               </Button>
               <Button
                 onClick={() => setStep((s) => s + 1)}
-                className="bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400"
+                className="rounded-xl bg-[#00E599] px-5 py-2.5 text-xs font-bold text-[#040706] hover:bg-[#00c984] shadow-[0_2px_10px_rgba(0,229,153,0.15)]"
                 data-testid="onboarding-next"
               >
-                Continue <ArrowRight size={16} className="ml-1" />
+                Continue <ArrowRight size={15} className="ml-1.5" />
               </Button>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-// small inline icon wrapper to avoid extra import name clash
-function TrendingWrapper(props) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 3v18h18" />
-      <path d="m19 9-5 5-4-4-3 3" />
-    </svg>
   );
 }

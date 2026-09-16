@@ -21,7 +21,7 @@ export function AppLayout() {
   return (
     <UIProvider>
       <WorkspaceProvider>
-        <div className="flex min-h-screen bg-[#08090E]">
+        <div className="flex min-h-screen bg-[#040706]">
           <Sidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <TopBar />
@@ -34,18 +34,18 @@ export function AppLayout() {
           <AskAhonix />
 
           {/* mobile bottom nav */}
-          <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-[#1E2235] bg-[#0B0D14]/95 backdrop-blur-md md:hidden">
+          <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-[#16221B] bg-[#070C0A]/95 backdrop-blur-md md:hidden">
             {MOBILE_NAV.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium ${
-                    isActive ? "text-emerald-400" : "text-[#64748B]"
+                  `flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${
+                    isActive ? "text-[#00E599]" : "text-[#64748B]"
                   }`
                 }
               >
-                <item.icon size={19} />
+                <item.icon size={18} />
                 {item.name}
               </NavLink>
             ))}

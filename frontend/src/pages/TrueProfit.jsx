@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   HelpCircle,
   ShieldCheck,
+  TrendingUp,
 } from "lucide-react";
 import { useSection } from "@/lib/hooks";
 import { PageSkeleton, ErrorState } from "@/components/StateViews";
@@ -168,71 +169,71 @@ export default function TrueProfit() {
           <Stat label="Gross Revenue" value={fmtCurrency(p.gross_revenue, cur)} />
         </Card>
         <Card className="p-5">
-          <Stat label="Gross Profit" value={fmtCurrency(p.gross_profit, cur)} sub="after COGS" />
+          <Stat label="Gross Profit" value={fmtCurrency(p.gross_profit, cur)} sub="after unit COGS" />
         </Card>
         <Card className="p-5">
-          <Stat label="Contribution Margin" value={fmtCurrency(p.contribution_margin, cur)} sub="after variable costs" />
+          <Stat label="Contribution Margin" value={fmtCurrency(p.contribution_margin, cur)} sub="after direct marketing spend" />
         </Card>
-        <Card className="border-emerald-500/30 bg-emerald-500/5 p-5">
-          <Stat label="True Profit" value={fmtCurrency(p.true_profit, cur)} sub={`${fmtPercent(p.margin)} margin`} />
+        <Card className="border-emerald-500/30 bg-[#0B1A13] p-5">
+          <Stat label="True Net Profit" value={fmtCurrency(p.true_profit, cur)} sub={`${fmtPercent(p.margin)} net operating margin`} />
         </Card>
       </div>
 
       {/* Waterfall Card */}
-      <Card className="p-5">
-        <div className="flex items-center justify-between">
+      <Card className="p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <SectionHeader
-            title="Profit waterfall"
-            subtitle="How gross revenue becomes true profit across COGS and advertising"
+            title="Profit Reconciliation Waterfall"
+            subtitle="Step-by-step audit of gross revenue down to true net profit"
           />
           {eligibleAdSpend > 0 && (
-            <span className="text-xs text-[#94A3B8]">
-              Total Ad Spend Deducted: <strong>{fmtCurrency(eligibleAdSpend, cur)}</strong>
+            <span className="rounded border border-[#16221B] bg-[#070C0A] px-2.5 py-1 text-xs text-[#94A3B8]">
+              Deducted Ad Spend: <strong className="text-[#F8FAFC]">{fmtCurrency(eligibleAdSpend, cur)}</strong>
             </span>
           )}
         </div>
-        <div className="mt-5 space-y-2.5">
+        <div className="mt-6 space-y-3">
           {p.steps && p.steps.map((s, i) => {
             const isResult = s.type === "result";
             const isTotal = s.type === "total";
             const isAdSpend = s.label?.includes("Advertising");
             const pct = gross > 0 ? Math.min(100, (Math.abs(s.value) / gross) * 100) : 0;
             const color = isResult
-              ? "#10B981"
+              ? "#00E599"
               : isTotal
-              ? "#3B82F6"
+              ? "#38BDF8"
               : isAdSpend
               ? "#F59E0B"
               : "#F43F5E";
 
             return (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-48 shrink-0 text-sm text-[#CBD5E1] flex items-center gap-1.5">
+              <div key={i} className="flex items-center gap-2 sm:gap-3">
+                <div className="w-28 sm:w-48 shrink-0 text-xs font-medium text-[#CBD5E1] flex items-center gap-1.5">
                   <span className="truncate">{s.label}</span>
                   {isAdSpend && (
-                    <span className="text-[10px] uppercase font-semibold text-amber-400/90 bg-amber-500/10 px-1 py-0.2 rounded border border-amber-500/20">
+                    <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-amber-400 bg-amber-500/10 px-1 py-0.2 rounded border border-amber-500/20">
                       Ads
                     </span>
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="h-7 overflow-hidden rounded-md bg-[#0F111A]">
+                <div className="flex-1 min-w-[50px]">
+                  <div className="h-6 overflow-hidden rounded bg-[#070C0A] border border-[#16221B]">
                     <div
-                      className="flex h-full items-center rounded-md px-2 text-xs font-semibold text-black/70 transition-all"
+                      className="flex h-full items-center rounded px-2 text-[11px] font-semibold text-black transition-all"
                       style={{
-                        width: `${Math.max(pct, s.value === 0 ? 0 : 6)}%`,
+                        width: `${Math.max(pct, s.value === 0 ? 0 : 4)}%`,
                         background: color,
-                        opacity: isResult || isTotal ? 1 : 0.65,
+                        opacity: isResult || isTotal ? 1 : 0.75,
                       }}
                     />
                   </div>
                 </div>
                 <div
-                  className={`w-32 shrink-0 text-right font-metric text-sm font-bold ${
+                  className={`w-20 sm:w-32 shrink-0 text-right font-metric text-[11px] sm:text-xs font-bold ${
                     isResult
                       ? "text-emerald-400"
                       : isTotal
-                      ? "text-blue-400"
+                      ? "text-sky-400"
                       : isAdSpend
                       ? "text-amber-300"
                       : "text-rose-300"
@@ -249,48 +250,48 @@ export default function TrueProfit() {
 
       {/* Mismatch insight */}
       {p.insight && p.insight.mismatch && (
-        <Card className="border-l-4 border-l-emerald-500 bg-emerald-950/10 p-5">
+        <div className="rounded-xl border border-emerald-500/30 bg-[#0B1A13] p-5">
           <div className="flex items-start gap-3">
-            <Sparkles size={18} className="mt-0.5 shrink-0 text-emerald-400" />
+            <TrendingUp size={18} className="mt-0.5 shrink-0 text-emerald-400" />
             <div>
-              <h3 className="font-display text-base font-bold text-[#F8FAFC]">
-                Your highest-selling product isn't your most profitable
+              <h3 className="font-display text-sm font-bold text-[#F8FAFC]">
+                Volume vs. Profit Asymmetry Identified
               </h3>
-              <p className="mt-1.5 text-sm text-[#94A3B8]">
-                <span className="font-semibold text-[#CBD5E1]">{p.insight.best_seller}</span> sells the most units, but{" "}
-                <span className="font-semibold text-emerald-300">{p.insight.most_profitable}</span> contributes the most true profit.
-                Your best-margin product is <span className="font-semibold text-emerald-300">{p.insight.best_margin}</span>.
+              <p className="mt-1 text-xs leading-relaxed text-[#94A3B8]">
+                <span className="font-semibold text-[#CBD5E1]">{p.insight.best_seller}</span> accounts for the highest unit volume, but{" "}
+                <span className="font-semibold text-emerald-400">{p.insight.most_profitable}</span> delivers the highest net true profit.
+                The best margin product is <span className="font-semibold text-emerald-400">{p.insight.best_margin}</span>.
               </p>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Product Profitability */}
-      <Card className="overflow-hidden">
-        <div className="border-b border-[#1E2235] p-5">
-          <SectionHeader title="Profit by product" subtitle="Ranked by true profit contribution" />
+      <div className="rounded-xl border border-[#16221B] bg-[#0B110E] overflow-hidden">
+        <div className="border-b border-[#16221B] bg-[#070C0A] p-5">
+          <SectionHeader title="Product-Level Margin Matrix" subtitle="Ranked by total net true profit contribution" />
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm" data-testid="product-profit-table">
+          <table className="w-full text-xs" data-testid="product-profit-table">
             <thead>
-              <tr className="border-b border-[#1E2235] text-left text-xs uppercase tracking-wide text-[#64748B]">
-                <th className="px-5 py-3 font-medium">Product</th>
-                <th className="px-5 py-3 text-right font-medium">Units</th>
-                <th className="px-5 py-3 text-right font-medium">Revenue</th>
-                <th className="px-5 py-3 text-right font-medium">True Profit</th>
-                <th className="px-5 py-3 text-right font-medium">Margin</th>
+              <tr className="border-b border-[#16221B] text-left uppercase tracking-wider text-[#64748B]">
+                <th className="px-5 py-3 font-semibold">Product</th>
+                <th className="px-5 py-3 text-right font-semibold">Units Sold</th>
+                <th className="px-5 py-3 text-right font-semibold">Gross Revenue</th>
+                <th className="px-5 py-3 text-right font-semibold">True Profit</th>
+                <th className="px-5 py-3 text-right font-semibold">Net Margin</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#121A15]">
               {p.product_profit && p.product_profit.map((row, i) => (
-                <tr key={i} className="border-b border-[#141726] hover:bg-[#161926]">
-                  <td className="px-5 py-3 font-medium text-[#F8FAFC]">{row.name}</td>
-                  <td className="px-5 py-3 text-right font-metric text-[#CBD5E1]">{fmtNumber(row.units)}</td>
-                  <td className="px-5 py-3 text-right font-metric text-[#CBD5E1]">{fmtCurrency(row.revenue, cur)}</td>
-                  <td className="px-5 py-3 text-right font-metric font-semibold text-emerald-400">{fmtCurrency(row.true_profit, cur)}</td>
-                  <td className="px-5 py-3 text-right">
-                    <span className={`font-metric text-xs font-semibold ${row.margin > 20 ? "text-emerald-400" : row.margin > 10 ? "text-amber-400" : "text-rose-400"}`}>
+                <tr key={i} className="hover:bg-[#0E1713] transition-colors">
+                  <td className="px-5 py-3.5 font-medium text-[#F8FAFC]">{row.name}</td>
+                  <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtNumber(row.units)}</td>
+                  <td className="px-5 py-3.5 text-right font-metric text-[#CBD5E1]">{fmtCurrency(row.revenue, cur)}</td>
+                  <td className="px-5 py-3.5 text-right font-metric font-bold text-emerald-400">{fmtCurrency(row.true_profit, cur)}</td>
+                  <td className="px-5 py-3.5 text-right">
+                    <span className={`font-metric font-bold ${row.margin > 20 ? "text-emerald-400" : row.margin > 10 ? "text-amber-400" : "text-rose-400"}`}>
                       {fmtPercent(row.margin)}
                     </span>
                   </td>
@@ -299,7 +300,7 @@ export default function TrueProfit() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

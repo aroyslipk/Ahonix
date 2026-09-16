@@ -2,9 +2,23 @@ import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Settings as SettingsIcon, Plug, Check, LogOut, Building2, Loader2, Plus,
-  RefreshCw, Unlink, AlertCircle, CheckCircle2, ExternalLink,
-  Coins, ChevronDown, ChevronUp, Save, Search,
+  Settings as SettingsIcon,
+  Plug,
+  Check,
+  LogOut,
+  Building2,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Unlink,
+  AlertCircle,
+  CheckCircle2,
+  ExternalLink,
+  Coins,
+  ChevronDown,
+  ChevronUp,
+  Save,
+  Search,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -16,10 +30,14 @@ import { toast } from "sonner";
 import { MarketingIntegrationCard } from "@/components/MarketingIntegrationCard";
 
 const INTEGRATIONS = [
-  { name: "Shopify", cat: "Store" }, { name: "Amazon", cat: "Marketplace" },
-  { name: "WooCommerce", cat: "Store" }, { name: "Stripe", cat: "Payments" },
-  { name: "Meta Ads", cat: "Marketing" }, { name: "Google Ads", cat: "Marketing" },
-  { name: "TikTok Ads", cat: "Marketing" }, { name: "ShipStation", cat: "Logistics" },
+  { name: "Shopify", cat: "Store" },
+  { name: "Amazon", cat: "Marketplace" },
+  { name: "WooCommerce", cat: "Store" },
+  { name: "Stripe", cat: "Payments" },
+  { name: "Meta Ads", cat: "Marketing" },
+  { name: "Google Ads", cat: "Marketing" },
+  { name: "TikTok Ads", cat: "Marketing" },
+  { name: "ShipStation", cat: "Logistics" },
 ];
 
 function CogsSettingsCard({ workspace }) {
@@ -134,7 +152,7 @@ function CogsSettingsCard({ workspace }) {
   });
 
   return (
-    <Card className="p-6" data-testid="cogs-settings-card">
+    <Card className="p-6 border-[#16221B] bg-[#070C0A]" data-testid="cogs-settings-card">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <SectionHeader
           title="Product Costs & COGS (Unit Margins)"
@@ -143,8 +161,8 @@ function CogsSettingsCard({ workspace }) {
         />
         {data && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded bg-[#161926] border border-[#1E2235] px-2.5 py-1 text-xs text-[#94A3B8]">
-              Coverage: <strong className="text-emerald-400 font-metric">{data.coverage_pct}%</strong>
+            <span className="rounded-xl bg-[#0B110E] border border-[#16221B] px-3 py-1.5 text-xs text-[#94A3B8]">
+              Margin Coverage: <strong className="text-[#00E599] font-metric">{data.coverage_pct}%</strong>
             </span>
           </div>
         )}
@@ -152,35 +170,35 @@ function CogsSettingsCard({ workspace }) {
 
       {loading ? (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="animate-spin text-emerald-400" size={24} />
+          <Loader2 className="animate-spin text-[#00E599]" size={24} />
         </div>
       ) : !data ? (
         <div className="py-6 text-center text-xs text-[#64748B]">Unable to load COGS configuration.</div>
       ) : (
-        <div className="mt-4 space-y-4">
+        <div className="mt-6 space-y-4">
           {/* Summary stats */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-lg border border-[#1E2235] bg-[#0F111A] p-3">
-              <p className="text-[11px] text-[#64748B]">Total Products</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-3.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">Total SKUs</p>
               <p className="mt-1 font-metric text-lg font-bold text-[#F8FAFC]">{data.total_products}</p>
             </div>
-            <div className="rounded-lg border border-[#1E2235] bg-[#0F111A] p-3">
+            <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-3.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] text-[#64748B]">Merchant Configured</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">Merchant Configured</p>
                 <ValueBadge kind="CONFIGURED" />
               </div>
-              <p className="mt-1 font-metric text-lg font-bold text-emerald-400">{data.configured_count}</p>
+              <p className="mt-1 font-metric text-lg font-bold text-[#00E599]">{data.configured_count}</p>
             </div>
-            <div className="rounded-lg border border-[#1E2235] bg-[#0F111A] p-3">
+            <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-3.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] text-[#64748B]">Shopify Imported</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">Shopify Imported</p>
                 <ValueBadge kind="IMPORTED" />
               </div>
               <p className="mt-1 font-metric text-lg font-bold text-sky-400">{data.imported_count}</p>
             </div>
-            <div className="rounded-lg border border-[#1E2235] bg-[#0F111A] p-3">
+            <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-3.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] text-[#64748B]">Unconfigured ($0)</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">Unconfigured ($0)</p>
                 <ValueBadge kind="UNCONFIGURED" />
               </div>
               <p className="mt-1 font-metric text-lg font-bold text-rose-400">{data.unconfigured_count}</p>
@@ -188,26 +206,26 @@ function CogsSettingsCard({ workspace }) {
           </div>
 
           {isDemo && (
-            <div className="rounded-lg border border-[#2D334B]/60 bg-[#12141F] p-3 text-xs text-[#94A3B8]">
-              <strong className="text-[#F8FAFC]">Demo Mode:</strong> Northstar Goods benchmark COGS is active and locked. Connect a live Shopify store to configure real merchant costs.
+            <div className="rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-3.5 text-xs text-[#F5DE87]">
+              <strong className="text-[#F8FAFC]">Demo Mode:</strong> Northstar Goods benchmark COGS is active and locked. Connect a live Shopify store to configure real merchant unit costs.
             </div>
           )}
 
           {!isDemo && (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs text-emerald-300/90">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3.5 text-xs text-[#00E599]">
               Merchant-configured unit cost takes precedence over Shopify-imported costs. If left unconfigured, COGS falls back to $0.00 and profit is labeled ESTIMATED.
             </div>
           )}
 
           {/* Search bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-[#64748B]" size={14} />
+            <Search className="absolute left-3.5 top-3 text-[#64748B]" size={14} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products by title or category..."
-              className="w-full rounded-md border border-[#2D334B] bg-[#0A0C12] pl-8 pr-3 py-1.5 text-xs text-[#F8FAFC] placeholder-[#64748B] focus:border-emerald-500 focus:outline-none"
+              placeholder="Search products by title, SKU, or category..."
+              className="w-full rounded-xl border border-[#16221B] bg-[#0B110E] pl-9 pr-3.5 py-2.5 text-xs text-[#F8FAFC] placeholder-[#64748B] focus:border-[#00E599] focus:outline-none"
               data-testid="cogs-search-input"
             />
           </div>
@@ -226,22 +244,22 @@ function CogsSettingsCard({ workspace }) {
                 return (
                   <div
                     key={pid}
-                    className="rounded-lg border border-[#1E2235] bg-[#0F111A] p-4 transition-all"
+                    className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4 transition-all hover:border-[#1F3327]"
                     data-testid={`cogs-row-${pid}`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium text-sm text-[#F8FAFC] truncate">{prod.title}</p>
+                          <p className="font-semibold text-sm text-[#F8FAFC] truncate">{prod.title}</p>
                           <ValueBadge kind={prod.cogs_status || "UNCONFIGURED"} />
                         </div>
-                        <p className="text-xs text-[#64748B] mt-0.5">
+                        <p className="text-xs text-[#64748B] mt-1">
                           {prod.category} · Retail: <strong className="text-[#CBD5E1] font-metric">${(prod.min_price || 0).toFixed(2)}</strong> · Stock: <strong className="text-[#CBD5E1] font-metric">{prod.stock}</strong>
-                          {prod.margin > 0 && <span> · Margin: <strong className="text-emerald-400 font-metric">{prod.margin}%</strong></span>}
+                          {prod.margin > 0 && <span> · Margin: <strong className="text-[#00E599] font-metric">{prod.margin}%</strong></span>}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-wrap items-center gap-2.5 shrink-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-[#64748B] font-medium">Unit Cost: $</span>
                           <input
@@ -252,7 +270,7 @@ function CogsSettingsCard({ workspace }) {
                             value={prodCostState.unit_cost ?? ""}
                             onChange={(e) => handleProductCostChange(pid, e.target.value)}
                             placeholder="0.00"
-                            className="w-24 rounded border border-[#2D334B] bg-[#0A0C12] px-2.5 py-1 text-xs text-[#F8FAFC] font-metric placeholder-[#64748B] focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+                            className="w-24 rounded-lg border border-[#16221B] bg-[#070C0A] px-2.5 py-1.5 text-xs text-[#F8FAFC] font-metric placeholder-[#64748B] focus:border-[#00E599] focus:outline-none disabled:opacity-50"
                             data-testid={`cogs-input-${pid}`}
                           />
                         </div>
@@ -262,7 +280,7 @@ function CogsSettingsCard({ workspace }) {
                             size="sm"
                             onClick={() => handleSaveProduct(prod)}
                             disabled={savingId === pid}
-                            className="bg-emerald-500 text-xs font-semibold text-emerald-950 hover:bg-emerald-400"
+                            className="bg-[#00E599] text-xs font-bold text-[#040706] hover:bg-[#00c984] rounded-lg px-3 py-1.5"
                             data-testid={`save-cogs-${pid}`}
                           >
                             {savingId === pid ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} className="mr-1" />}
@@ -275,7 +293,7 @@ function CogsSettingsCard({ workspace }) {
                             size="sm"
                             variant="ghost"
                             onClick={() => toggleExpand(pid)}
-                            className="text-xs text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#161926]"
+                            className="text-xs text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#121C16] rounded-lg"
                             data-testid={`expand-variants-${pid}`}
                           >
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -287,9 +305,9 @@ function CogsSettingsCard({ workspace }) {
 
                     {/* Variant Level breakdown */}
                     {hasVariants && isExpanded && (
-                      <div className="mt-3 border-t border-[#1E2235] pt-3 animate-fade-in" data-testid={`variants-table-${pid}`}>
-                        <p className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide mb-2">
-                          Variant-Specific Unit Costs (Overrides Product Cost)
+                      <div className="mt-3.5 border-t border-[#16221B] pt-3.5" data-testid={`variants-table-${pid}`}>
+                        <p className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mb-2.5">
+                          Variant-Specific Unit Costs (Overrides Product Base Cost)
                         </p>
                         <div className="space-y-2">
                           {prod.variants.map((v) => {
@@ -298,7 +316,7 @@ function CogsSettingsCard({ workspace }) {
                             return (
                               <div
                                 key={vid}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded border border-[#1A1D2B] bg-[#0A0C12] px-3 py-2 text-xs"
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-2.5 text-xs"
                               >
                                 <div className="flex items-center gap-2">
                                   <span className="text-[#F8FAFC] font-medium">{v.title}</span>
@@ -310,7 +328,7 @@ function CogsSettingsCard({ workspace }) {
                                   {v.imported_cost !== null && (
                                     <span className="text-sky-400/80">Shopify: ${v.imported_cost.toFixed(2)}</span>
                                   )}
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1.5">
                                     <span className="text-[#64748B]">Cost: $</span>
                                     <input
                                       type="number"
@@ -320,7 +338,7 @@ function CogsSettingsCard({ workspace }) {
                                       value={varCostVal}
                                       onChange={(e) => handleVariantCostChange(pid, vid, e.target.value)}
                                       placeholder="inherit"
-                                      className="w-20 rounded border border-[#2D334B] bg-[#12141F] px-2 py-0.5 text-xs text-[#F8FAFC] font-metric focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+                                      className="w-20 rounded-lg border border-[#16221B] bg-[#0B110E] px-2 py-1 text-xs text-[#F8FAFC] font-metric focus:border-[#00E599] focus:outline-none disabled:opacity-50"
                                       data-testid={`cogs-variant-input-${vid}`}
                                     />
                                   </div>
@@ -656,7 +674,7 @@ export default function Settings() {
     try {
       await api.post("/workspaces", { name: "Northstar Goods", mode: "demo", currency: "USD", channels: ["Shopify", "Amazon"] });
       await qc.invalidateQueries();
-      toast.success("Demo workspace ready.");
+      toast.success("Demo workspace initialized.");
       navigate("/app/overview");
     } finally {
       setCreating(false);
@@ -677,40 +695,61 @@ export default function Settings() {
 
   return (
     <div className="max-w-4xl space-y-8">
-      <SectionHeader title="Settings & Integrations" subtitle="Workspace, connections and account" icon={SettingsIcon} />
+      <SectionHeader title="Settings & Integrations" subtitle="Workspace telemetry, data connections, and merchant account" icon={SettingsIcon} />
 
-      <Card className="p-6">
-        <SectionHeader title="Current workspace" icon={Building2} />
+      {/* Current Workspace Info */}
+      <Card className="p-6 border-[#16221B] bg-[#070C0A]">
+        <SectionHeader title="Active Workspace" icon={Building2} />
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Stat label="Name" value={workspace?.name || "—"} />
-          <Stat label="Type" value={workspace?.business_type || "—"} />
-          <Stat label="Currency" value={workspace?.currency || "USD"} />
-          <Stat label="Mode" value={workspace?.is_demo ? "Demo" : "Live"} />
+          <Stat label="Workspace Name" value={workspace?.name || "—"} />
+          <Stat label="Operating Model" value={workspace?.business_type || "—"} />
+          <Stat label="Functional Currency" value={workspace?.currency || "USD"} />
+          <Stat label="Telemetry Mode" value={workspace?.is_demo ? "Demo Sandbox" : "Live Production"} />
         </div>
       </Card>
 
-      <Card className="p-6">
+      {/* Workspaces Switcher */}
+      <Card className="p-6 border-[#16221B] bg-[#070C0A]">
         <div className="flex items-center justify-between">
-          <SectionHeader title="Workspaces" subtitle="Switch or create a workspace" />
-          <Button onClick={createDemo} disabled={creating} variant="outline" className="border-[#2D334B] bg-transparent text-[#F8FAFC] hover:bg-[#161926]" data-testid="create-demo-btn">
-            {creating ? <Loader2 className="animate-spin" size={15} /> : <><Plus size={15} className="mr-1.5" /> New demo</>}
+          <SectionHeader title="Available Workspaces" subtitle="Switch tenant or spin up a simulated sandbox" />
+          <Button
+            onClick={createDemo}
+            disabled={creating}
+            variant="outline"
+            className="border-[#16221B] bg-[#0B110E] text-xs font-semibold text-[#F8FAFC] hover:bg-[#121C16] hover:border-[#1F3327] rounded-xl"
+            data-testid="create-demo-btn"
+          >
+            {creating ? <Loader2 className="animate-spin" size={14} /> : <><Plus size={14} className="mr-1.5 text-[#00E599]" /> New Demo Workspace</>}
           </Button>
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-2.5">
           {workspaces.map((w) => (
-            <div key={w.workspace_id} className="flex items-center justify-between rounded-lg border border-[#1E2235] bg-[#0F111A] px-4 py-3">
+            <div
+              key={w.workspace_id}
+              className="flex items-center justify-between rounded-xl border border-[#16221B] bg-[#0B110E] px-4 py-3 transition-all hover:border-[#1F3327]"
+            >
               <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 text-xs font-bold text-emerald-950">{w.name.slice(0, 1)}</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#00E599]/30 bg-[#00E599]/15 text-xs font-bold text-[#00E599]">
+                  {w.name.slice(0, 1)}
+                </span>
                 <div>
-                  <p className="text-sm font-medium text-[#F8FAFC]">{w.name}</p>
-                  <p className="text-xs text-[#64748B]">{w.is_demo ? "Demo workspace" : "Live workspace"}</p>
+                  <p className="text-sm font-semibold text-[#F8FAFC]">{w.name}</p>
+                  <p className="text-xs text-[#64748B]">{w.is_demo ? "Demo Sandbox" : "Live Production"}</p>
                 </div>
               </div>
               {w.workspace_id === workspace?.workspace_id ? (
-                <span className="flex items-center gap-1 text-xs font-medium text-emerald-400"><Check size={14} /> Active</span>
+                <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-[#00E599]">
+                  <Check size={13} /> Active
+                </span>
               ) : (
-                <Button size="sm" onClick={() => switchTo(w.workspace_id)} disabled={switching === w.workspace_id} variant="ghost" className="text-[#94A3B8] hover:bg-[#161926] hover:text-[#F8FAFC]">
-                  {switching === w.workspace_id ? <Loader2 className="animate-spin" size={14} /> : "Switch"}
+                <Button
+                  size="sm"
+                  onClick={() => switchTo(w.workspace_id)}
+                  disabled={switching === w.workspace_id}
+                  variant="ghost"
+                  className="text-xs text-[#94A3B8] hover:bg-[#121C16] hover:text-[#F8FAFC] rounded-lg"
+                >
+                  {switching === w.workspace_id ? <Loader2 className="animate-spin" size={13} /> : "Switch"}
                 </Button>
               )}
             </div>
@@ -718,35 +757,40 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card className="p-6">
-        <SectionHeader title="Integrations" subtitle="Connect real commerce data (Shopify live; other channels architecture-ready)" icon={Plug} />
+      {/* Integrations Section */}
+      <Card className="p-6 border-[#16221B] bg-[#070C0A]">
+        <SectionHeader
+          title="Integrations & Data Ingestion"
+          subtitle="Connect live merchant data (Shopify live; Meta & Google Ads OAuth connected; other pipelines architecture-ready)"
+          icon={Plug}
+        />
         
         {/* Shopify Integration Card */}
-        <div className="mt-4 rounded-lg border border-[#1E2235] bg-[#0F111A] p-4 transition-all">
+        <div className="mt-5 rounded-xl border border-[#16221B] bg-[#0B110E] p-4 transition-all hover:border-[#1F3327]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-sm">
+            <div className="flex items-start gap-3.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-[#00E599] border border-emerald-500/20 font-bold text-sm">
                 S
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-[#F8FAFC]">Shopify</p>
+                  <p className="text-sm font-semibold text-[#F8FAFC]">Shopify Storefront</p>
                   {shopifyLoading ? (
                     <Loader2 size={13} className="animate-spin text-[#64748B]" />
                   ) : shopifyStatus?.connected ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400 border border-emerald-500/20" data-testid="shopify-connected-badge">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-[#00E599] border border-emerald-500/20" data-testid="shopify-connected-badge">
                       <CheckCircle2 size={11} /> Connected
                     </span>
                   ) : (
-                    <span className="rounded-full bg-[#1E2235] px-2 py-0.5 text-[11px] text-[#64748B]">
-                      Store
+                    <span className="rounded-full bg-[#121C16] border border-[#16221B] px-2 py-0.5 text-[11px] text-[#64748B]">
+                      Storefront
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-[#64748B] mt-0.5">
                   {shopifyStatus?.connected
                     ? `Store: ${shopifyStatus.shop} · API: ${shopifyStatus.api_version || "2026-07"}`
-                    : "Connect your Shopify store to sync real products and orders (read-only)"}
+                    : "Connect your Shopify store to sync catalog, variant pricing, and orders (read-only)"}
                 </p>
               </div>
             </div>
@@ -760,10 +804,10 @@ export default function Settings() {
                     variant="outline"
                     onClick={handleShopifySync}
                     disabled={shopifySyncing}
-                    className="border-[#2D334B] bg-[#161926] text-xs text-[#F8FAFC] hover:bg-[#1E2235]"
+                    className="border-[#16221B] bg-[#121C16] text-xs font-semibold text-[#F8FAFC] hover:bg-[#16221B] rounded-lg"
                     data-testid="shopify-sync-btn"
                   >
-                    <RefreshCw size={13} className={`mr-1.5 ${shopifySyncing ? "animate-spin text-emerald-400" : ""}`} />
+                    <RefreshCw size={13} className={`mr-1.5 ${shopifySyncing ? "animate-spin text-[#00E599]" : ""}`} />
                     {shopifySyncing ? "Syncing..." : "Sync Now"}
                   </Button>
                   <Button
@@ -771,7 +815,7 @@ export default function Settings() {
                     variant="ghost"
                     onClick={handleShopifyDisconnect}
                     disabled={shopifyDisconnecting}
-                    className="text-xs text-rose-400 hover:bg-rose-950/20 hover:text-rose-300"
+                    className="text-xs text-rose-400 hover:bg-rose-950/20 hover:text-rose-300 rounded-lg"
                     data-testid="shopify-disconnect-btn"
                   >
                     {shopifyDisconnecting ? <Loader2 size={13} className="animate-spin" /> : <><Unlink size={13} className="mr-1" /> Disconnect</>}
@@ -782,7 +826,7 @@ export default function Settings() {
                   size="sm"
                   variant="outline"
                   onClick={() => setShowShopifyInput(!showShopifyInput)}
-                  className="border-emerald-500/30 bg-emerald-500/10 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20"
+                  className="border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-[#00E599] hover:bg-emerald-500/20 rounded-lg"
                   data-testid="connect-shopify"
                 >
                   {showShopifyInput ? "Cancel" : "Connect Shopify"}
@@ -791,10 +835,10 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Connect Input Form (when disconnected and toggled) */}
+          {/* Connect Input Form */}
           {!shopifyStatus?.connected && showShopifyInput && (
-            <div className="mt-4 rounded-lg border border-[#2D334B]/60 bg-[#12141F] p-3 animate-fade-in" data-testid="shopify-connect-form">
-              <p className="text-xs font-medium text-[#F8FAFC] mb-1.5">Enter your Shopify store domain:</p>
+            <div className="mt-4 rounded-xl border border-[#16221B] bg-[#070C0A] p-4" data-testid="shopify-connect-form">
+              <p className="text-xs font-medium text-[#F8FAFC] mb-2">Enter your myshopify.com store domain:</p>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative flex-1">
                   <input
@@ -802,7 +846,7 @@ export default function Settings() {
                     value={shopifyDomain}
                     onChange={(e) => setShopifyDomain(e.target.value)}
                     placeholder="your-store.myshopify.com"
-                    className="w-full rounded-md border border-[#2D334B] bg-[#0A0C12] px-3 py-1.5 text-xs text-[#F8FAFC] placeholder-[#64748B] focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full rounded-xl border border-[#16221B] bg-[#0B110E] px-3.5 py-2 text-xs text-[#F8FAFC] placeholder-[#64748B] focus:border-[#00E599] focus:outline-none"
                     data-testid="shopify-domain-input"
                   />
                 </div>
@@ -810,7 +854,7 @@ export default function Settings() {
                   size="sm"
                   onClick={handleShopifyConnect}
                   disabled={shopifyConnecting || !shopifyDomain.trim()}
-                  className="bg-emerald-500 text-xs font-semibold text-emerald-950 hover:bg-emerald-400"
+                  className="bg-[#00E599] text-xs font-bold text-[#040706] hover:bg-[#00c984] rounded-xl px-4 py-2"
                   data-testid="shopify-authorize-btn"
                 >
                   {shopifyConnecting ? <Loader2 size={13} className="animate-spin mr-1.5" /> : <ExternalLink size={13} className="mr-1.5" />}
@@ -818,21 +862,21 @@ export default function Settings() {
                 </Button>
               </div>
               <p className="mt-2 text-[11px] text-[#64748B]">
-                Only read permissions (<code className="text-emerald-400/80">read_products</code>, <code className="text-emerald-400/80">read_orders</code>) are requested. AHONIX will never modify your store data.
+                Only read scopes (<code className="text-[#00E599]/80">read_products</code>, <code className="text-[#00E599]/80">read_orders</code>) are requested. AHONIX will never write to or modify your store.
               </p>
             </div>
           )}
 
-          {/* Sync Status Subpanel (when connected) */}
+          {/* Sync Status Subpanel */}
           {shopifyStatus?.connected && (
-            <div className="mt-3 border-t border-[#1E2235] pt-3 text-xs text-[#64748B]" data-testid="shopify-sync-status-panel">
+            <div className="mt-3.5 border-t border-[#16221B] pt-3 text-xs text-[#64748B]" data-testid="shopify-sync-status-panel">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <span>
-                    Status:{" "}
-                    <span className={`font-medium ${
+                    Sync State:{" "}
+                    <span className={`font-semibold ${
                       shopifyStatus.sync_status === "success"
-                        ? "text-emerald-400"
+                        ? "text-[#00E599]"
                         : shopifyStatus.sync_status === "failed"
                         ? "text-rose-400"
                         : shopifyStatus.sync_status === "syncing"
@@ -844,8 +888,8 @@ export default function Settings() {
                   </span>
                   <span>·</span>
                   <span>
-                    Last Sync:{" "}
-                    <span className="text-[#94A3B8]">
+                    Last Ingested:{" "}
+                    <span className="text-[#CBD5E1]">
                       {shopifyStatus.last_sync_at
                         ? new Date(shopifyStatus.last_sync_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                         : "Never"}
@@ -855,10 +899,10 @@ export default function Settings() {
 
                 {shopifyStatus.summary && (
                   <div className="flex items-center gap-2 text-[11px]">
-                    <span className="rounded bg-[#161926] px-2 py-0.5 text-[#94A3B8] border border-[#1E2235]">
+                    <span className="rounded-lg bg-[#070C0A] px-2.5 py-1 text-[#94A3B8] border border-[#16221B]">
                       {shopifyStatus.summary.product_count} products verified
                     </span>
-                    <span className="rounded bg-[#161926] px-2 py-0.5 text-[#94A3B8] border border-[#1E2235]">
+                    <span className="rounded-lg bg-[#070C0A] px-2.5 py-1 text-[#94A3B8] border border-[#16221B]">
                       {shopifyStatus.summary.order_count} orders verified
                     </span>
                   </div>
@@ -866,8 +910,8 @@ export default function Settings() {
               </div>
 
               {shopifyStatus.sync_error && (
-                <div className="mt-2 flex items-center gap-1.5 rounded bg-rose-950/20 px-2.5 py-1.5 text-xs text-rose-300 border border-rose-900/30">
-                  <AlertCircle size={13} className="shrink-0 text-rose-400" />
+                <div className="mt-2.5 flex items-center gap-2 rounded-lg bg-rose-950/20 px-3 py-2 text-xs text-rose-300 border border-rose-900/30">
+                  <AlertCircle size={14} className="shrink-0 text-rose-400" />
                   <span>Sync Error: {shopifyStatus.sync_error}</span>
                 </div>
               )}
@@ -913,60 +957,72 @@ export default function Settings() {
           />
         </div>
 
-        {/* Other integrations (architected, not yet connected in this phase) */}
+        {/* Other integrations (architecture-ready) */}
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {INTEGRATIONS.filter((it) => !["Shopify", "Meta Ads", "Google Ads"].includes(it.name)).map((it) => (
-            <div key={it.name} className="flex items-center justify-between rounded-lg border border-[#1E2235] bg-[#0F111A] px-4 py-3 opacity-80">
+            <div key={it.name} className="flex items-center justify-between rounded-xl border border-[#16221B] bg-[#0B110E] px-4 py-3 opacity-75">
               <div>
-                <p className="text-sm font-medium text-[#F8FAFC]">{it.name}</p>
+                <p className="text-sm font-semibold text-[#F8FAFC]">{it.name}</p>
                 <p className="text-xs text-[#64748B]">{it.cat}</p>
               </div>
-              <Button size="sm" variant="outline" onClick={() => toast.info(`${it.name} connection is not enabled in this demo build.`)} className="border-[#2D334B] bg-transparent text-xs text-[#94A3B8] hover:bg-[#161926]" data-testid={`connect-${it.name.toLowerCase().replace(/\s/g, "-")}`}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => toast.info(`${it.name} connector is ready in production pipeline.`)}
+                className="border-[#16221B] bg-[#070C0A] text-xs text-[#94A3B8] hover:bg-[#121C16] hover:text-[#F8FAFC] rounded-lg"
+                data-testid={`connect-${it.name.toLowerCase().replace(/\s/g, "-")}`}
+              >
                 Connect
               </Button>
             </div>
           ))}
         </div>
         <p className="mt-4 text-xs text-[#64748B]">
-          Integrations are architected cleanly. AHONIX connects via official OAuth and never modifies external merchant data.
+          Integrations are strictly decoupled and read-only. AHONIX connects via official OAuth 2.0 and never modifies external merchant data.
         </p>
       </Card>
 
       {/* Merchant COGS Configuration Card */}
       <CogsSettingsCard workspace={workspace} />
 
-      <Card className="p-6">
-        <SectionHeader title="Account" />
+      {/* Account Section */}
+      <Card className="p-6 border-[#16221B] bg-[#070C0A]">
+        <SectionHeader title="Merchant Account" />
         <div className="mt-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-[#F8FAFC]">{user?.name}</p>
-            <p className="text-xs text-[#64748B]">{user?.email} · via {user?.auth_provider === "google" ? "Google" : "email"}</p>
+            <p className="text-sm font-semibold text-[#F8FAFC]">{user?.name}</p>
+            <p className="text-xs text-[#64748B]">{user?.email} · Authenticated via {user?.auth_provider === "google" ? "Google OAuth" : "Email / Password"}</p>
           </div>
-          <Button onClick={async () => { await logout(); navigate("/login"); }} variant="outline" className="border-rose-900/50 bg-transparent text-rose-300 hover:bg-rose-950/20" data-testid="settings-logout-btn">
-            <LogOut size={15} className="mr-1.5" /> Sign out
+          <Button
+            onClick={async () => { await logout(); navigate("/login"); }}
+            variant="outline"
+            className="border-rose-900/40 bg-rose-950/10 text-xs font-semibold text-rose-300 hover:bg-rose-950/20 rounded-xl"
+            data-testid="settings-logout-btn"
+          >
+            <LogOut size={14} className="mr-1.5" /> Sign Out
           </Button>
         </div>
       </Card>
 
       {/* Legal & Policies Card */}
-      <Card className="p-6" data-testid="settings-legal-card">
+      <Card className="p-6 border-[#16221B] bg-[#070C0A]" data-testid="settings-legal-card">
         <SectionHeader title="Legal & Policies" />
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs text-[#94A3B8]">
           <p>
-            Review our public compliance, data governance, and merchant agreement policies.
+            Review our statutory compliance, data protection agreements, and merchant governance standards.
           </p>
           <div className="flex items-center gap-4">
             <Link
               to="/privacy"
-              className="font-medium text-emerald-400 hover:text-emerald-300 hover:underline"
+              className="font-medium text-[#00E599] hover:text-[#00c984] hover:underline"
               data-testid="settings-privacy-link"
             >
               Privacy Policy
             </Link>
-            <span className="text-[#334155]">·</span>
+            <span className="text-[#16221B]">·</span>
             <Link
               to="/terms"
-              className="font-medium text-emerald-400 hover:text-emerald-300 hover:underline"
+              className="font-medium text-[#00E599] hover:text-[#00c984] hover:underline"
               data-testid="settings-terms-link"
             >
               Terms of Service

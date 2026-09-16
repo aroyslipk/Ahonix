@@ -142,21 +142,21 @@ export function MarketingIntegrationCard({
 
   return (
     <div
-      className={`rounded-lg border bg-[#0F111A] p-5 transition-all ${
+      className={`rounded-xl border p-5 transition-all duration-200 ${
         isCurrencyMismatch
-          ? "border-amber-500/40"
+          ? "border-amber-500/40 bg-[#0B110E]"
           : isReauthRequired
-          ? "border-amber-500/50"
+          ? "border-amber-500/50 bg-[#0B110E]"
           : isConnected
-          ? "border-[#1E2235] hover:border-[#2D334B]"
-          : "border-[#1E2235]/80 opacity-90"
+          ? "border-[#16221B] bg-[#0B110E] hover:border-emerald-500/30 hover:bg-[#0E1713]"
+          : "border-[#16221B]/80 bg-[#0B110E] opacity-90"
       }`}
       data-testid={`marketing-card-${platform}`}
     >
       {/* Header Row */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3.5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#2D334B] bg-[#161926]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#16221B] bg-[#070C0A]">
             {platform === "meta" ? (
               <MetaIcon className="h-5 w-5" />
             ) : (
@@ -165,7 +165,7 @@ export function MarketingIntegrationCard({
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-semibold text-[#F8FAFC]">{title}</h3>
+              <h3 className="text-sm font-bold text-[#F8FAFC]">{title}</h3>
 
               {/* Status Badges */}
               {statusLoading ? (
@@ -189,7 +189,7 @@ export function MarketingIntegrationCard({
                   <CheckCircle2 size={11} /> Connected
                 </span>
               ) : (
-                <span className="rounded-full border border-[#1E2235] bg-[#161926] px-2.5 py-0.5 text-[11px] font-medium text-[#94A3B8]">
+                <span className="rounded-full border border-[#16221B] bg-[#070C0A] px-2.5 py-0.5 text-[11px] font-medium text-[#94A3B8]">
                   Disconnected
                 </span>
               )}
@@ -214,13 +214,9 @@ export function MarketingIntegrationCard({
 
             <p className="mt-1 text-xs text-[#94A3B8] leading-relaxed">
               {isConnected
-                ? platform === "meta"
-                  ? statusData?.selected_account_name
-                    ? `Account: ${statusData.selected_account_name} (${statusData.selected_account_id})`
-                    : "Account connected. Select an active ad account to sync campaigns."
-                  : statusData?.selected_account_name
-                  ? `Customer: ${statusData.selected_account_name} (${statusData.selected_customer_id})`
-                  : "Google Ads connected. Select an accessible customer account to sync campaigns."
+                ? statusData?.selected_account_name
+                  ? `Account: ${statusData.selected_account_name} (${statusData.selected_account_id})`
+                  : "Account connected. Select an active ad account to sync campaigns."
                 : description}
             </p>
           </div>
@@ -239,7 +235,7 @@ export function MarketingIntegrationCard({
                 size="sm"
                 variant="outline"
                 onClick={handleToggleAccounts}
-                className="border-[#2D334B] bg-[#161926] text-xs text-[#CBD5E1] hover:bg-[#1E2235]"
+                className="border-[#16221B] bg-[#070C0A] text-xs text-[#CBD5E1] hover:border-emerald-500/30 hover:bg-[#0B110E] hover:text-[#F8FAFC]"
                 data-testid={`${platform}-select-account-btn`}
               >
                 <Building size={12} className="mr-1.5 text-[#94A3B8]" />
@@ -258,15 +254,16 @@ export function MarketingIntegrationCard({
                 variant="outline"
                 onClick={handleSyncClick}
                 disabled={isSyncingActive}
-                className="border-[#2D334B] bg-[#161926] text-xs text-[#F8FAFC] hover:bg-[#1E2235]"
+                className="border-[#16221B] bg-[#070C0A] text-xs text-[#F8FAFC] hover:border-emerald-500/30 hover:bg-[#0B110E]"
                 data-testid={`${platform}-sync-btn`}
               >
                 <RefreshCw
                   size={12}
-                  className={`mr-1.5 ${isSyncingActive ? "animate-spin text-cyan-400" : ""}`}
+                  className={`mr-1.5 ${isSyncingActive ? "animate-spin text-emerald-400" : ""}`}
                 />
                 {isSyncingActive ? "Syncing..." : "Sync Now"}
               </Button>
+
 
               <Button
                 size="sm"
@@ -372,7 +369,7 @@ export function MarketingIntegrationCard({
 
       {/* Connected Details Bar */}
       {!isDemo && isConnected && (
-        <div className="mt-4 border-t border-[#1E2235] pt-3 text-xs text-[#64748B]">
+        <div className="mt-4 border-t border-[#16221B] pt-3 text-xs text-[#64748B]">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-3">
               <span>
@@ -384,7 +381,7 @@ export function MarketingIntegrationCard({
                       : syncStatus === "failed"
                       ? "text-rose-400"
                       : syncStatus === "syncing"
-                      ? "text-cyan-400"
+                      ? "text-emerald-300"
                       : "text-[#94A3B8]"
                   }`}
                 >
@@ -423,7 +420,7 @@ export function MarketingIntegrationCard({
       {/* Account Selection Panel (Dropdown / Expandable) */}
       {!isDemo && isConnected && showAccounts && (
         <div
-          className="mt-4 rounded-lg border border-[#2D334B] bg-[#121420] p-4 text-xs"
+          className="mt-4 rounded-xl border border-[#16221B] bg-[#070C0A] p-4 text-xs"
           data-testid={`${platform}-accounts-panel`}
         >
           <div className="flex items-center justify-between mb-3">
@@ -453,10 +450,10 @@ export function MarketingIntegrationCard({
                   <div
                     key={accId}
                     onClick={() => handleAccountSelect(acc)}
-                    className={`flex items-center justify-between p-2.5 rounded-md border cursor-pointer transition-colors ${
+                    className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-colors ${
                       isSelected
                         ? "border-emerald-500/50 bg-emerald-500/10 text-[#F8FAFC]"
-                        : "border-[#1E2235] bg-[#0A0C12] hover:border-[#2D334B] text-[#CBD5E1]"
+                        : "border-[#16221B] bg-[#0B110E] hover:border-emerald-500/30 text-[#CBD5E1]"
                     }`}
                     data-testid={`${platform}-account-item-${accId}`}
                   >
@@ -465,7 +462,7 @@ export function MarketingIntegrationCard({
                         className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
                           isSelected
                             ? "border-emerald-400 bg-emerald-500"
-                            : "border-[#475569] bg-transparent"
+                            : "border-[#344D3F] bg-transparent"
                         }`}
                       >
                         {isSelected && <Check size={10} className="text-black stroke-[3]" />}
@@ -490,7 +487,7 @@ export function MarketingIntegrationCard({
                         className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
                           isMismatch
                             ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
-                            : "bg-[#161926] text-[#94A3B8]"
+                            : "bg-[#070C0A] text-[#94A3B8]"
                         }`}
                       >
                         {accCurr}

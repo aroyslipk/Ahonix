@@ -20,9 +20,9 @@ export default function PrivacyPolicy() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#08090E] text-[#F8FAFC]">
+    <div className="min-h-screen bg-[#040706] text-[#F8FAFC]">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-30 border-b border-[#1E2235] bg-[#08090E]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-[#16221B] bg-[#040706]/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
             <Logo size={24} />
@@ -36,7 +36,7 @@ export default function PrivacyPolicy() {
             </Link>
             <Link
               to="/login"
-              className="flex items-center gap-1.5 rounded-lg border border-[#2D334B] bg-[#0F111A] px-3.5 py-1.5 text-xs font-semibold text-[#F8FAFC] transition-colors hover:bg-[#161926]"
+              className="flex items-center gap-1.5 rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-1.5 text-xs font-semibold text-[#F8FAFC] transition-colors hover:bg-[#0B110E]"
             >
               Sign In
             </Link>
@@ -49,14 +49,14 @@ export default function PrivacyPolicy() {
         {/* Back link */}
         <Link
           to="/"
-          className="mb-8 inline-flex items-center gap-2 text-xs font-medium text-[#64748B] transition-colors hover:text-emerald-400"
+          className="mb-8 inline-flex items-center gap-2 text-xs font-medium text-[#64748B] transition-colors hover:text-[#00E599]"
         >
           <ArrowLeft size={14} /> Back to AHONIX Home
         </Link>
 
         {/* Title Header */}
-        <div className="mb-12 border-b border-[#1E2235] pb-8">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-medium text-emerald-400">
+        <div className="mb-12 border-b border-[#16221B] pb-8">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-medium text-[#00E599]">
             <ShieldCheck size={14} /> Official Legal Documentation
           </div>
           <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl text-[#F8FAFC]">
@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
         {/* Core Notice Banner: No Sale of Merchant Data */}
         <div className="mb-10 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-5 sm:p-6">
           <div className="flex items-start gap-4">
-            <div className="rounded-xl bg-emerald-500/20 p-2 text-emerald-400">
+            <div className="rounded-xl bg-emerald-500/20 p-2 text-[#00E599]">
               <EyeOff size={22} />
             </div>
             <div>
@@ -96,7 +96,7 @@ export default function PrivacyPolicy() {
           {/* Section 1 */}
           <section id="who-we-are" className="space-y-3">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">1.</span> Who We Are & Scope
+              <span className="text-[#00E599]">1.</span> Who We Are & Scope
             </h2>
             <p className="text-sm leading-relaxed">
               AHONIX provides an operating system for modern e-commerce brands. Our platform connects directly with merchant
@@ -113,7 +113,7 @@ export default function PrivacyPolicy() {
           {/* Section 2 */}
           <section id="data-collected" className="space-y-4">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">2.</span> Information We Collect
+              <span className="text-[#00E599]">2.</span> Information We Collect
             </h2>
             <p className="text-sm leading-relaxed">
               We collect only the minimum business data necessary to provide analytical calculations and decision support. We do not
@@ -122,9 +122,9 @@ export default function PrivacyPolicy() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Shopify Store Data */}
-              <div className="rounded-xl border border-[#1E2235] bg-[#0F111A] p-5">
+              <div className="rounded-xl border border-[#16221B] bg-[#070C0A] p-5">
                 <div className="flex items-center gap-2 text-sm font-bold text-[#F8FAFC]">
-                  <Database size={16} className="text-emerald-400" /> Shopify Store Data
+                  <Database size={16} className="text-[#00E599]" /> Shopify Store Data
                 </div>
                 <ul className="mt-3 space-y-1.5 text-xs text-[#94A3B8]">
                   <li>• Store domain, name, and default currency</li>
@@ -133,16 +133,16 @@ export default function PrivacyPolicy() {
                   <li>• Discount codes, discount amounts, and refund transactions</li>
                   <li>• Shipping geography (city and country only; no street addresses)</li>
                   <li>• First-party UTM parameters from customer journey summaries</li>
-                  <li className="pt-1 text-emerald-400/90 font-medium">
+                  <li className="pt-1 text-[#00E599]/90 font-medium">
                     ✓ We do NOT receive or store credit card numbers or payment credentials.
                   </li>
                 </ul>
               </div>
 
               {/* Meta Ads Data */}
-              <div className="rounded-xl border border-[#1E2235] bg-[#0F111A] p-5">
+              <div className="rounded-xl border border-[#16221B] bg-[#070C0A] p-5">
                 <div className="flex items-center gap-2 text-sm font-bold text-[#F8FAFC]">
-                  <Database size={16} className="text-emerald-400" /> Meta Ads Data
+                  <Database size={16} className="text-[#00E599]" /> Meta Ads Data
                 </div>
                 <ul className="mt-3 space-y-1.5 text-xs text-[#94A3B8]">
                   <li>• Ad account identifiers and account names</li>
@@ -150,16 +150,16 @@ export default function PrivacyPolicy() {
                   <li>• Campaign IDs, campaign names, status, and objectives</li>
                   <li>• Daily aggregated spend, impressions, and clicks</li>
                   <li>• Platform-reported conversion counts and conversion values</li>
-                  <li className="pt-1 text-emerald-400/90 font-medium">
+                  <li className="pt-1 text-[#00E599]/90 font-medium">
                     ✓ Imported as reference metrics only; never added to revenue.
                   </li>
                 </ul>
               </div>
 
               {/* Google Ads Data */}
-              <div className="rounded-xl border border-[#1E2235] bg-[#0F111A] p-5">
+              <div className="rounded-xl border border-[#16221B] bg-[#070C0A] p-5">
                 <div className="flex items-center gap-2 text-sm font-bold text-[#F8FAFC]">
-                  <Database size={16} className="text-emerald-400" /> Google Ads Data
+                  <Database size={16} className="text-[#00E599]" /> Google Ads Data
                 </div>
                 <ul className="mt-3 space-y-1.5 text-xs text-[#94A3B8]">
                   <li>• Customer IDs (normalized without hyphens) and account names</li>
@@ -172,9 +172,9 @@ export default function PrivacyPolicy() {
               </div>
 
               {/* Account & Authentication Data */}
-              <div className="rounded-xl border border-[#1E2235] bg-[#0F111A] p-5">
+              <div className="rounded-xl border border-[#16221B] bg-[#070C0A] p-5">
                 <div className="flex items-center gap-2 text-sm font-bold text-[#F8FAFC]">
-                  <Lock size={16} className="text-emerald-400" /> Account & Security Data
+                  <Lock size={16} className="text-[#00E599]" /> Account & Security Data
                 </div>
                 <ul className="mt-3 space-y-1.5 text-xs text-[#94A3B8]">
                   <li>• Merchant contact email address and display name</li>
@@ -190,35 +190,35 @@ export default function PrivacyPolicy() {
           {/* Section 3 */}
           <section id="how-data-is-used" className="space-y-3">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">3.</span> How We Use Your Data
+              <span className="text-[#00E599]">3.</span> How We Use Your Data
             </h2>
             <p className="text-sm leading-relaxed">
               We process data strictly to provide and maintain the analytical capabilities of the platform:
             </p>
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[#00E599]" />
                 <span>
                   <strong className="text-[#F8FAFC]">True Profit Computation:</strong> Calculating real net operating profit by deducting
                   merchant COGS, discounts, refunds, and eligible advertising spend from verified Shopify gross revenue.
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[#00E599]" />
                 <span>
                   <strong className="text-[#F8FAFC]">Marketing Blending (ROAS & CAC):</strong> Merging eligible ad spend across Meta Ads
                   and Google Ads against total Shopify order volume to compute Blended ROAS and Blended CAC without double-counting.
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[#00E599]" />
                 <span>
                   <strong className="text-[#F8FAFC]">First-Party UTM Attribution:</strong> Matching customer journey UTM parameters
                   directly to ad campaign records to identify which specific campaigns generated Shopify sales.
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[#00E599]" />
                 <span>
                   <strong className="text-[#F8FAFC]">Product Margin & Inventory Insights:</strong> Analyzing unit costs and stock-out
                   trajectories to alert merchants to stock risks and margin erosion.
@@ -230,12 +230,12 @@ export default function PrivacyPolicy() {
           {/* Section 4 */}
           <section id="security" className="space-y-3">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">4.</span> Security Measures & Encryption
+              <span className="text-[#00E599]">4.</span> Security Measures & Encryption
             </h2>
             <p className="text-sm leading-relaxed">
               We apply defense-in-depth technical measures to safeguard your information:
             </p>
-            <div className="space-y-2.5 rounded-xl border border-[#1E2235] bg-[#0F111A] p-5 text-sm text-[#94A3B8]">
+            <div className="space-y-2.5 rounded-xl border border-[#16221B] bg-[#070C0A] p-5 text-sm text-[#94A3B8]">
               <p>
                 • <strong className="text-[#F8FAFC]">Encryption at Rest:</strong> All third-party OAuth tokens (Shopify offline access tokens, Meta access tokens, and Google Ads refresh tokens) are encrypted before writing to the database using AES-128 via Fernet encryption keys derived from environment secrets.
               </p>
@@ -243,13 +243,13 @@ export default function PrivacyPolicy() {
                 • <strong className="text-[#F8FAFC]">Encryption in Transit:</strong> All communications between your browser, our servers, and third-party APIs use TLS 1.3 encryption (HTTPS).
               </p>
               <p>
-                • <strong className="text-[#F8FAFC]">Workspace Isolation:</strong> All database queries, caches, and analytics pipelines enforce multi-tenant isolation scoped strictly by authenticated <code className="rounded bg-[#1E2235] px-1 text-xs text-emerald-400">workspace_id</code>.
+                • <strong className="text-[#F8FAFC]">Workspace Isolation:</strong> All database queries, caches, and analytics pipelines enforce multi-tenant isolation scoped strictly by authenticated <code className="rounded bg-[#121C16] border border-[#16221B] px-1.5 py-0.5 text-xs text-[#00E599]">workspace_id</code>.
               </p>
               <p>
                 • <strong className="text-[#F8FAFC]">Credential Sanitization:</strong> API responses strictly sanitize tokens; access tokens, refresh tokens, app secrets, and developer tokens are never serialized or returned to the client browser.
               </p>
               <p>
-                • <strong className="text-[#F8FAFC]">Secure Cookies & Headers:</strong> Authentication cookies use <code className="rounded bg-[#1E2235] px-1 text-xs text-emerald-400">HttpOnly</code>, <code className="rounded bg-[#1E2235] px-1 text-xs text-emerald-400">Secure</code>, and strict <code className="rounded bg-[#1E2235] px-1 text-xs text-emerald-400">SameSite</code> settings, alongside anti-clickjacking and content security headers.
+                • <strong className="text-[#F8FAFC]">Secure Cookies & Headers:</strong> Authentication cookies use <code className="rounded bg-[#121C16] border border-[#16221B] px-1.5 py-0.5 text-xs text-[#00E599]">HttpOnly</code>, <code className="rounded bg-[#121C16] border border-[#16221B] px-1.5 py-0.5 text-xs text-[#00E599]">Secure</code>, and strict <code className="rounded bg-[#121C16] border border-[#16221B] px-1.5 py-0.5 text-xs text-[#00E599]">SameSite</code> settings, alongside anti-clickjacking and content security headers.
               </p>
             </div>
           </section>
@@ -257,21 +257,21 @@ export default function PrivacyPolicy() {
           {/* Section 5 */}
           <section id="data-retention-deletion" className="space-y-3">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">5.</span> Data Retention & Disconnection
+              <span className="text-[#00E599]">5.</span> Data Retention & Disconnection
             </h2>
             <p className="text-sm leading-relaxed">
               You maintain full control over your connected data at all times:
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-[#1E2235] bg-[#0F111A] p-4 text-xs">
+              <div className="rounded-xl border border-[#16221B] bg-[#070C0A] p-4 text-xs">
                 <div className="flex items-center gap-2 font-bold text-[#F8FAFC]">
-                  <RefreshCw size={14} className="text-emerald-400" /> Disconnecting an Integration
+                  <RefreshCw size={14} className="text-[#00E599]" /> Disconnecting an Integration
                 </div>
                 <p className="mt-2 text-[#94A3B8] leading-relaxed">
                   You can disconnect Shopify, Meta Ads, or Google Ads at any time in Settings. Disconnecting permanently deletes stored OAuth credentials and purges synced records for that platform.
                 </p>
               </div>
-              <div className="rounded-xl border border-[#1E2235] bg-[#0F111A] p-4 text-xs">
+              <div className="rounded-xl border border-[#16221B] bg-[#070C0A] p-4 text-xs">
                 <div className="flex items-center gap-2 font-bold text-[#F8FAFC]">
                   <Trash2 size={14} className="text-rose-400" /> Account & Data Deletion
                 </div>
@@ -285,7 +285,7 @@ export default function PrivacyPolicy() {
           {/* Section 6 */}
           <section id="third-party-services" className="space-y-3">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">6.</span> Third-Party Service Providers
+              <span className="text-[#00E599]">6.</span> Third-Party Service Providers
             </h2>
             <p className="text-sm leading-relaxed">
               AHONIX interacts with authorized platform APIs to fetch your authorized business metrics. We do not provide these platforms with your proprietary data from other channels:
@@ -309,14 +309,14 @@ export default function PrivacyPolicy() {
           {/* Section 7 */}
           <section id="cookies" className="space-y-3">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">7.</span> Cookies & Session Management
+              <span className="text-[#00E599]">7.</span> Cookies & Session Management
             </h2>
             <p className="text-sm leading-relaxed">
               We use strictly necessary first-party cookies to manage authentication sessions:
             </p>
             <ul className="space-y-1 text-xs text-[#94A3B8]">
-              <li>• <code className="text-emerald-400">access_token</code>: Authenticates API requests (1-hour lifespan, HttpOnly).</li>
-              <li>• <code className="text-emerald-400">refresh_token</code>: Renews expired access tokens (7-day lifespan, HttpOnly).</li>
+              <li>• <code className="text-[#00E599]">access_token</code>: Authenticates API requests (1-hour lifespan, HttpOnly).</li>
+              <li>• <code className="text-[#00E599]">refresh_token</code>: Renews expired access tokens (7-day lifespan, HttpOnly).</li>
               <li>• We do <strong className="text-[#F8FAFC]">not</strong> use third-party advertising tracking cookies or behavioral tracking pixels.</li>
             </ul>
           </section>
@@ -324,19 +324,19 @@ export default function PrivacyPolicy() {
           {/* Section 8 */}
           <section id="contact-updates" className="space-y-3">
             <h2 className="font-display text-xl font-bold text-[#F8FAFC] flex items-center gap-2">
-              <span className="text-emerald-400">8.</span> Contact Information & Policy Updates
+              <span className="text-[#00E599]">8.</span> Contact Information & Policy Updates
             </h2>
             <p className="text-sm leading-relaxed">
               We may update this Privacy Policy periodically to reflect new features or platform requirements. If material changes are made, we will notify registered merchants via email or in-app notice prior to the changes becoming effective.
             </p>
-            <div className="mt-4 flex flex-col gap-3 rounded-xl border border-[#1E2235] bg-[#0F111A] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-4 flex flex-col gap-3 rounded-xl border border-[#16221B] bg-[#070C0A] p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-bold text-[#F8FAFC]">Privacy & Data Governance Inquiries</p>
                 <p className="text-xs text-[#94A3B8]">Contact our compliance and security team directly.</p>
               </div>
               <a
                 href="mailto:privacy@ahonix.com"
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20"
+                className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-[#00E599] hover:bg-emerald-500/20"
               >
                 <Mail size={14} /> privacy@ahonix.com
               </a>
@@ -345,7 +345,7 @@ export default function PrivacyPolicy() {
         </div>
 
         {/* Bottom Footer Navigation */}
-        <div className="mt-16 border-t border-[#1E2235] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748B]">
+        <div className="mt-16 border-t border-[#16221B] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748B]">
           <p>© 2026 AHONIX · The AI Commerce OS. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link to="/terms" className="hover:text-[#94A3B8] transition-colors">

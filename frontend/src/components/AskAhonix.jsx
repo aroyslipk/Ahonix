@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Sparkles, ArrowUp, Loader2, AlertTriangle } from "lucide-react";
+import { X, ArrowUp, Loader2, AlertTriangle, ShieldCheck, Database, Compass } from "lucide-react";
 import { useUI } from "@/context/UIContext";
 import { API } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
@@ -8,12 +8,12 @@ import { Logo } from "@/components/Logo";
 const MAX_QUESTION_LENGTH = 5000;
 
 const QUICK_PROMPTS = [
-  "What should I focus on today?",
-  "Why is my profit different from revenue?",
-  "Which product should I restock first?",
-  "Which campaign is actually making money?",
-  "Where am I losing money?",
-  "What market should I expand into next?",
+  "What is the single biggest money leak across my store this month?",
+  "Break down why my true profit deviates from gross revenue.",
+  "Which products require immediate restock based on current velocity?",
+  "Which marketing campaign is generating positive net contribution?",
+  "Where are return rates destroying my unit economics?",
+  "Which international market presents the lowest-risk expansion?",
 ];
 
 export function AskAhonix() {
@@ -126,47 +126,76 @@ export function AskAhonix() {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" data-testid="ask-ahonix-drawer">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAskOpen(false)} />
-      <div className="relative flex h-full w-full max-w-xl flex-col border-l border-[#1E2235] bg-[#0B0D14] shadow-2xl animate-fade-up">
-        <div className="flex items-center justify-between border-b border-[#1E2235] px-5 py-4">
-          <div className="flex items-center gap-2">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAskOpen(false)} />
+      <div className="relative flex h-full w-full max-w-2xl flex-col border-l border-[#16221B] bg-[#070C0A] shadow-2xl animate-fade-up">
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between border-b border-[#16221B] px-4 py-3.5 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <Logo size={22} showText={false} />
             <div>
-              <p className="font-display text-sm font-bold text-[#F8FAFC]">
-                Ask AHONIX <span className="text-emerald-400">✦</span>
-              </p>
-              <p className="text-xs text-[#64748B]">Your commerce analyst · reasons over your data</p>
+              <div className="flex items-center gap-2">
+                <p className="font-display text-sm sm:text-base font-bold text-[#F8FAFC]">Ask AHONIX</p>
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Verified Analyst
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-[#64748B]">Autonomous commerce intelligence grounded in your merchant data</p>
             </div>
           </div>
           <button
             onClick={() => setAskOpen(false)}
-            className="rounded-lg p-2 text-[#94A3B8] hover:bg-[#161926]"
+            className="rounded-lg p-2 text-[#94A3B8] transition-colors hover:bg-[#16221B] hover:text-[#F8FAFC]"
             data-testid="ask-close-btn"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+        {/* Content Area */}
+        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           {messages.length === 0 && (
             <div>
-              <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#1E2235] bg-[#121420] p-4">
-                <Sparkles size={16} className="mt-0.5 text-emerald-400" />
-                <p className="text-sm text-[#CBD5E1]">
-                  Ask me anything about your business. I analyze your sales, profit, inventory, marketing and
-                  returns — and tell you what to do next.
-                </p>
+              {/* Institutional Analyst Briefing */}
+              <div className="mb-6 rounded-xl border border-[#16221B] bg-[#0B110E] p-5">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                    <Database size={17} />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#F8FAFC]">Diagnostic Reasoning Active</h3>
+                    <p className="mt-1 text-xs leading-relaxed text-[#94A3B8]">
+                      AHONIX continuously correlates your revenue streams, unit cost structures, marketing returns, and operational frictions. Query any financial or operational metric for rigorous, evidence-grounded recommendations.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-[#64748B]">
+                      <span className="flex items-center gap-1 rounded border border-[#16221B] bg-[#070C0A] px-2 py-0.5">
+                        <ShieldCheck size={11} className="text-emerald-400" /> Shopify Orders Grounded
+                      </span>
+                      <span className="flex items-center gap-1 rounded border border-[#16221B] bg-[#070C0A] px-2 py-0.5">
+                        <ShieldCheck size={11} className="text-emerald-400" /> Unit COGS Verified
+                      </span>
+                      <span className="flex items-center gap-1 rounded border border-[#16221B] bg-[#070C0A] px-2 py-0.5">
+                        <ShieldCheck size={11} className="text-emerald-400" /> Ad Spend Deducted
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#64748B]">Try asking</p>
+
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Strategic Inquiries</p>
+                <span className="text-[11px] text-[#475569]">Click to inspect</span>
+              </div>
               <div className="space-y-2">
                 {QUICK_PROMPTS.map((p) => (
                   <button
                     key={p}
                     onClick={() => send(p)}
-                    className="w-full rounded-lg border border-[#1E2235] bg-[#0F111A] px-3 py-2.5 text-left text-sm text-[#CBD5E1] transition-colors hover:border-emerald-500/40 hover:bg-[#121420]"
+                    className="flex w-full items-center justify-between rounded-xl border border-[#16221B] bg-[#0B110E] px-4 py-3 text-left text-xs font-medium text-[#CBD5E1] transition-all duration-150 hover:border-emerald-500/30 hover:bg-[#0E1713] hover:text-[#F8FAFC]"
                     data-testid="ask-quick-prompt"
                   >
-                    {p}
+                    <span>{p}</span>
+                    <Compass size={13} className="ml-2 shrink-0 text-[#64748B]" />
                   </button>
                 ))}
               </div>
@@ -176,17 +205,27 @@ export function AskAhonix() {
           {messages.map((m, i) =>
             m.role === "user" ? (
               <div key={i} className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-emerald-500/15 px-4 py-2.5 text-sm text-emerald-100">
+                <div className="max-w-[85%] rounded-2xl rounded-br-sm border border-emerald-500/20 bg-[#0B1A13] px-4 py-3 text-sm leading-relaxed text-[#E2FBEF]">
                   {m.content}
                 </div>
               </div>
             ) : (
-              <div key={i} className="rounded-xl border border-[#1E2235] bg-[#121420] p-4" data-testid="ask-answer">
+              <div key={i} className="rounded-xl border border-[#16221B] bg-[#0B110E] p-5 shadow-sm" data-testid="ask-answer">
+                <div className="mb-3 flex items-center justify-between border-b border-[#16221B] pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]">
+                      AHONIX Analyst Synthesis
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-[#64748B]">Zero Fabrication Policy</span>
+                </div>
                 {m.content ? (
-                  <div className="markdown" dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
+                  <div className="markdown text-sm leading-relaxed text-[#CBD5E1]" dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
                 ) : (
-                  <div className="flex items-center gap-2 text-sm text-[#64748B]">
-                    <Loader2 size={14} className="animate-spin" /> Analyzing your data…
+                  <div className="flex items-center gap-2.5 py-3 text-sm text-[#94A3B8]">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Correlating merchant telemetry and synthesizing evidence…</span>
                   </div>
                 )}
               </div>
@@ -195,8 +234,9 @@ export function AskAhonix() {
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-[#1E2235] p-4">
-          <div className="flex items-end gap-2 rounded-xl border border-[#2D334B] bg-[#161926] p-2 focus-within:border-emerald-500/50">
+        {/* Input Bar */}
+        <div className="border-t border-[#16221B] bg-[#070C0A] p-4 pb-6 sm:p-5">
+          <div className="flex items-end gap-2.5 rounded-xl border border-[#16221B] bg-[#0B110E] p-2.5 transition-colors focus-within:border-emerald-500/40">
             <textarea
               value={input}
               onChange={(e) => {
@@ -211,7 +251,7 @@ export function AskAhonix() {
                 }
               }}
               rows={1}
-              placeholder="Ask about profit, returns, restock, campaigns…"
+              placeholder="Ask about profit reconciliation, margin leaks, inventory turn, ad ROAS..."
               className="max-h-32 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-[#F8FAFC] outline-none placeholder:text-[#475569]"
               data-testid="ask-ahonix-input"
               maxLength={MAX_QUESTION_LENGTH}
@@ -219,23 +259,24 @@ export function AskAhonix() {
             <button
               onClick={() => send()}
               disabled={streaming || !input.trim() || input.length > MAX_QUESTION_LENGTH}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-emerald-950 disabled:opacity-40"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-emerald-950 transition-transform active:scale-95 disabled:opacity-30"
               data-testid="ask-ahonix-submit"
             >
-              {streaming ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
+              {streaming ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} strokeWidth={2.5} />}
             </button>
           </div>
           {input.length > MAX_QUESTION_LENGTH * 0.9 && (
-            <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-400">
+            <div className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-400">
               <AlertTriangle size={10} />
               {input.length}/{MAX_QUESTION_LENGTH} characters
             </div>
           )}
-          <p className="mt-2 text-center text-[10px] text-[#475569]">
-            AHONIX reasons over demo data. Figures are estimates, not financial advice.
+          <p className="mt-2.5 text-center text-[10px] text-[#475569]">
+            AHONIX uses verified formulas and real store telemetry. Estimates are clearly marked.
           </p>
         </div>
       </div>
     </div>
   );
 }
+

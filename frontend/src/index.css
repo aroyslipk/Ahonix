@@ -1,28 +1,36 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 228 30% 4%;
+  /* AHONIX Cinematic Deep Forest / Obsidian Palette */
+  --bg-void: 160 30% 2%;
+  --bg-canvas: 160 25% 4%;
+  --bg-surface: 160 20% 7%;
+  --bg-surface-elevated: 160 18% 10%;
+  
+  --background: 160 25% 4%;
   --foreground: 210 40% 98%;
-  --card: 230 28% 10%;
+  --card: 160 20% 7%;
   --card-foreground: 210 40% 98%;
-  --popover: 230 30% 8%;
+  --popover: 160 22% 6%;
   --popover-foreground: 210 40% 98%;
-  --primary: 160 84% 39%;
-  --primary-foreground: 160 90% 8%;
-  --secondary: 230 20% 16%;
+  
+  --primary: 158 100% 45%;         /* #00E599 Emerald Glow */
+  --primary-foreground: 160 90% 5%;
+  
+  --secondary: 160 15% 12%;
   --secondary-foreground: 210 40% 98%;
-  --muted: 230 20% 14%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 230 22% 18%;
+  --muted: 160 12% 12%;
+  --muted-foreground: 215 15% 60%;
+  --accent: 160 20% 14%;
   --accent-foreground: 210 40% 98%;
   --destructive: 350 89% 60%;
   --destructive-foreground: 210 40% 98%;
-  --border: 230 22% 16%;
-  --input: 230 22% 18%;
-  --ring: 160 84% 39%;
+  --border: 160 15% 14%;
+  --input: 160 15% 14%;
+  --ring: 158 100% 45%;
   --radius: 0.75rem;
 }
 
@@ -32,15 +40,20 @@
 
 html,
 body {
-  background-color: #08090e;
+  background-color: #050807;
   color: #f8fafc;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", "Hind Siliguri", -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 .font-display {
-  font-family: "Plus Jakarta Sans", sans-serif;
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+}
+
+.font-bengali {
+  font-family: "Hind Siliguri", sans-serif;
 }
 
 .font-metric {
@@ -50,25 +63,73 @@ body {
 }
 
 ::selection {
-  background: rgba(16, 185, 129, 0.3);
-  color: #ecfdf5;
+  background: rgba(0, 229, 153, 0.3);
+  color: #f8fafc;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2d334b;
-  border-radius: 8px;
+  background: #19241f;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3d4560;
+  background: #253830;
 }
 
+/* 3D Depth Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.perspective-1500 {
+  perspective: 1500px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Studio lighting and reflections */
+.studio-floor-reflection {
+  position: relative;
+}
+.studio-floor-reflection::after {
+  content: "";
+  position: absolute;
+  bottom: -20%;
+  left: 10%;
+  right: 10%;
+  height: 40%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 153, 0.12) 0%, transparent 70%);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+/* Solid, restrained cards with razor 1px borders */
+.solid-card {
+  background-color: #0b110e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.solid-card:hover {
+  border-color: rgba(0, 229, 153, 0.3);
+}
+
+.solid-card-elevated {
+  background-color: #0f1713;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6);
+}
+
+/* Restrained animations */
 @keyframes ahonix-fade-up {
   from {
     opacity: 0;
@@ -83,29 +144,6 @@ body {
   animation: ahonix-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes ahonix-radar {
-  0% {
-    transform: scale(0.6);
-    opacity: 0.7;
-  }
-  100% {
-    transform: scale(2.4);
-    opacity: 0;
-  }
-}
-.animate-radar {
-  animation: ahonix-radar 2s ease-out infinite;
-}
-
-@keyframes ahonix-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.animate-sweep {
-  animation: ahonix-spin 1.6s linear infinite;
-}
-
 @keyframes ahonix-shimmer {
   0% {
     background-position: -400px 0;
@@ -115,41 +153,26 @@ body {
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, #121420 25%, #1a1d2d 50%, #121420 75%);
+  background: linear-gradient(90deg, #0d1411 25%, #15221d 50%, #0d1411 75%);
   background-size: 800px 100%;
   animation: ahonix-shimmer 1.4s infinite linear;
   border-radius: 8px;
 }
 
-.glass {
-  background: rgba(15, 17, 26, 0.75);
-  backdrop-filter: blur(16px);
-}
-
-.card-hover {
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease,
-    background-color 0.2s ease;
-}
-.card-hover:hover {
-  border-color: rgba(16, 185, 129, 0.4);
-  transform: translateY(-2px);
-}
-
+/* Ask AHONIX Markdown */
 .markdown h3 {
   font-family: "Plus Jakarta Sans", sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #34d399;
+  color: #00e599;
   margin: 14px 0 6px;
   font-weight: 700;
 }
 .markdown p {
   color: #cbd5e1;
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.65;
   margin: 4px 0;
 }
 .markdown ul {
@@ -161,7 +184,7 @@ body {
   font-size: 0.875rem;
   line-height: 1.6;
   list-style: disc;
-  margin: 2px 0;
+  margin: 3px 0;
 }
 .markdown strong {
   color: #f8fafc;

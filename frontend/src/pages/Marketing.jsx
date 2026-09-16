@@ -53,7 +53,7 @@ export default function Marketing() {
           icon={Target}
         />
 
-        <div className="rounded-xl border border-[#1E2235] bg-[#0F111A] p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xl">
+        <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xl">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 mb-5">
             <Plug size={28} />
           </div>
@@ -62,12 +62,12 @@ export default function Marketing() {
             No ad channels connected
           </h2>
 
-          <p className="mt-2.5 text-sm text-[#94A3B8] leading-relaxed">
+          <p className="mt-2.5 text-xs text-[#94A3B8] leading-relaxed">
             Connect Meta Ads or Google Ads in Settings to view real advertising spend,
             blended ROAS, blended CAC, and campaign performance.
           </p>
 
-          <div className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#2D334B] bg-[#161926] px-3.5 py-2 text-xs text-[#CBD5E1]">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-2 text-xs text-[#CBD5E1]">
             <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
             <span>AHONIX never fabricates mock marketing metrics. Only verified ad spend is blended.</span>
           </div>
@@ -129,7 +129,7 @@ export default function Marketing() {
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
                 : completenessStatus === "PARTIAL"
                 ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                : "border-[#2D334B] bg-[#161926] text-[#94A3B8]"
+                : "border-[#16221B] bg-[#070C0A] text-[#94A3B8]"
             }`}
             data-testid="marketing-completeness-badge"
           >
@@ -184,29 +184,29 @@ export default function Marketing() {
       )}
 
       {/* Top Metrics Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="p-5">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-4 sm:p-5">
           <Stat
             label="Eligible Ad Spend"
             value={fmtCurrency(eligibleSpend, cur)}
             sub="flows into True Profit"
           />
         </Card>
-        <Card className="p-5">
+        <Card className="p-4 sm:p-5">
           <Stat
             label="Excluded Ad Spend"
             value={fmtCurrency(excludedSpend, cur)}
             sub={excludedSpend > 0 ? "Currency mismatch" : "No exclusions"}
           />
         </Card>
-        <Card className="p-5">
+        <Card className="p-4 sm:p-5">
           <Stat
             label="Blended ROAS"
             value={eligibleSpend > 0 ? `${m.blended_roas}x` : "—"}
             sub={eligibleSpend > 0 ? "gross revenue ÷ ad spend" : "No eligible spend"}
           />
         </Card>
-        <Card className="p-5">
+        <Card className="p-4 sm:p-5">
           <Stat
             label="Blended CAC"
             value={eligibleSpend > 0 ? fmtCurrency(m.blended_cac, cur) : "—"}
@@ -217,10 +217,10 @@ export default function Marketing() {
 
       {/* Channel Spend & Attribution Overview */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4 bg-[#0F111A]">
+        <Card className="p-4 bg-[#0B110E]">
           <div className="flex items-center justify-between text-xs text-[#94A3B8]">
             <span>Meta Ads Spend</span>
-            <span className="rounded bg-[#161926] px-1.5 py-0.5 text-[10px] text-[#CBD5E1]">
+            <span className="rounded bg-[#070C0A] border border-[#16221B] px-1.5 py-0.5 text-[10px] text-[#CBD5E1]">
               {metaPlatform ? "Connected" : "Inactive"}
             </span>
           </div>
@@ -229,10 +229,10 @@ export default function Marketing() {
           </p>
         </Card>
 
-        <Card className="p-4 bg-[#0F111A]">
+        <Card className="p-4 bg-[#0B110E]">
           <div className="flex items-center justify-between text-xs text-[#94A3B8]">
             <span>Google Ads Spend</span>
-            <span className="rounded bg-[#161926] px-1.5 py-0.5 text-[10px] text-[#CBD5E1]">
+            <span className="rounded bg-[#070C0A] border border-[#16221B] px-1.5 py-0.5 text-[10px] text-[#CBD5E1]">
               {googlePlatform ? "Connected" : "Inactive"}
             </span>
           </div>
@@ -241,7 +241,7 @@ export default function Marketing() {
           </p>
         </Card>
 
-        <Card className="p-4 bg-[#0F111A]">
+        <Card className="p-4 bg-[#0B110E]">
           <div className="flex items-center justify-between text-xs text-[#94A3B8]">
             <span>Attributed Revenue</span>
             <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-400 border border-emerald-500/20">
@@ -260,7 +260,7 @@ export default function Marketing() {
           </p>
         </Card>
 
-        <Card className="p-4 bg-[#0F111A]">
+        <Card className="p-4 bg-[#0B110E]">
           <div className="flex items-center justify-between text-xs text-[#94A3B8]">
             <span>Attribution Coverage</span>
             <span className="text-[11px] text-[#64748B] font-metric">
@@ -278,17 +278,17 @@ export default function Marketing() {
 
       {/* Paradox / Insight */}
       {m.paradox && m.paradox.high_roas_campaign && m.paradox.high_profit_campaign && (
-        <Card className="border-l-4 border-l-cyan-500 bg-cyan-950/10 p-5">
+        <Card className="border-l-4 border-l-emerald-500 bg-[#0B1A13] p-5">
           <div className="flex items-start gap-3">
-            <Zap size={18} className="mt-0.5 text-cyan-400 shrink-0" />
+            <Zap size={18} className="mt-0.5 text-emerald-400 shrink-0" />
             <div>
               <h3 className="font-display text-base font-bold text-[#F8FAFC]">
                 Highest ROAS ≠ most profit
               </h3>
-              <p className="mt-1 text-sm text-[#94A3B8] leading-relaxed">
+              <p className="mt-1 text-xs text-[#94A3B8] leading-relaxed">
                 <span className="font-semibold text-[#CBD5E1]">{m.paradox.high_roas_campaign}</span>{" "}
                 has the best ROAS, but{" "}
-                <span className="font-semibold text-emerald-300">{m.paradox.high_profit_campaign}</span>{" "}
+                <span className="font-semibold text-emerald-400">{m.paradox.high_profit_campaign}</span>{" "}
                 contributes more real profit after COGS and fees. Optimize for contribution, not ROAS alone.
               </p>
             </div>
@@ -298,7 +298,7 @@ export default function Marketing() {
 
       {/* Campaign Performance Table */}
       <Card className="overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#1E2235] p-5 gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#16221B] bg-[#070C0A] p-5 gap-2">
           <div>
             <h3 className="font-display text-base font-bold text-[#F8FAFC]">
               Campaign Performance & Attribution
@@ -308,7 +308,7 @@ export default function Marketing() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center rounded bg-[#161926] px-2 py-0.5 text-[10px] font-semibold text-[#94A3B8] border border-[#1E2235]">
+            <span className="inline-flex items-center rounded bg-[#0B110E] px-2 py-0.5 text-[10px] font-semibold text-[#94A3B8] border border-[#16221B]">
               IMPORTED = Ad Platform
             </span>
             <span className="inline-flex items-center rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
@@ -318,33 +318,33 @@ export default function Marketing() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm" data-testid="campaign-table">
+          <table className="w-full text-xs" data-testid="campaign-table">
             <thead>
-              <tr className="border-b border-[#1E2235] text-left text-xs uppercase tracking-wide text-[#64748B] bg-[#0A0C12]">
-                <th className="px-4 py-3 font-medium">Platform</th>
-                <th className="px-4 py-3 font-medium">Campaign</th>
-                <th className="px-4 py-3 text-right font-medium">Spend</th>
-                <th className="px-4 py-3 text-right font-medium">
+              <tr className="border-b border-[#16221B] text-left uppercase tracking-wider text-[#64748B] bg-[#070C0A]">
+                <th className="px-4 py-3 font-semibold">Platform</th>
+                <th className="px-4 py-3 font-semibold">Campaign</th>
+                <th className="px-4 py-3 text-right font-semibold">Spend</th>
+                <th className="px-4 py-3 text-right font-semibold">
                   Impr. <span className="text-[10px] text-[#475569] font-normal">(IMP)</span>
                 </th>
-                <th className="px-4 py-3 text-right font-medium">
+                <th className="px-4 py-3 text-right font-semibold">
                   Clicks <span className="text-[10px] text-[#475569] font-normal">(IMP)</span>
                 </th>
-                <th className="px-4 py-3 text-right font-medium">
+                <th className="px-4 py-3 text-right font-semibold">
                   Conv. <span className="text-[10px] text-[#475569] font-normal">(IMP)</span>
                 </th>
-                <th className="px-4 py-3 text-right font-medium">
-                  Orders <span className="text-[10px] text-emerald-400/80 font-normal">(ATTR)</span>
+                <th className="px-4 py-3 text-right font-semibold">
+                  Orders <span className="text-[10px] text-emerald-400 font-normal">(ATTR)</span>
                 </th>
-                <th className="px-4 py-3 text-right font-medium">
-                  Revenue <span className="text-[10px] text-emerald-400/80 font-normal">(ATTR)</span>
+                <th className="px-4 py-3 text-right font-semibold">
+                  Revenue <span className="text-[10px] text-emerald-400 font-normal">(ATTR)</span>
                 </th>
-                <th className="px-4 py-3 text-right font-medium">
-                  Contribution <span className="text-[10px] text-emerald-400/80 font-normal">(ATTR)</span>
+                <th className="px-4 py-3 text-right font-semibold">
+                  Contribution <span className="text-[10px] text-emerald-400 font-normal">(ATTR)</span>
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#121A15]">
               {m.campaigns && m.campaigns.length > 0 ? (
                 m.campaigns.map((c, i) => {
                   const hasAttr = c.attribution_status === "ATTRIBUTED" && c.attributed_revenue != null;
@@ -353,12 +353,12 @@ export default function Marketing() {
                   return (
                     <tr
                       key={c.id || i}
-                      className="border-b border-[#141726] hover:bg-[#161926]/60 transition-colors"
+                      className="hover:bg-[#0E1713] transition-colors"
                       data-testid={`campaign-row-${c.id || i}`}
                     >
                       {/* Platform */}
                       <td className="px-4 py-3 text-xs text-[#CBD5E1]">
-                        <span className="inline-flex items-center rounded bg-[#161926] px-2 py-0.5 text-[11px] font-medium text-[#CBD5E1] border border-[#1E2235]">
+                        <span className="inline-flex items-center rounded bg-[#070C0A] px-2 py-0.5 text-[11px] font-medium text-[#CBD5E1] border border-[#16221B]">
                           {c.platform}
                         </span>
                       </td>
@@ -449,7 +449,7 @@ export default function Marketing() {
         </div>
 
         {/* Legend / Guidance Note */}
-        <div className="border-t border-[#1E2235] bg-[#0A0C12] px-5 py-3 text-[11px] text-[#64748B] flex flex-wrap items-center justify-between gap-2">
+        <div className="border-t border-[#16221B] bg-[#070C0A] px-5 py-3 text-[11px] text-[#64748B] flex flex-wrap items-center justify-between gap-2">
           <span>
             <strong>Attributed Campaign Contribution</strong> = Attributed Revenue − Attributed COGS − Ad Spend.
           </span>
@@ -461,3 +461,4 @@ export default function Marketing() {
     </div>
   );
 }
+

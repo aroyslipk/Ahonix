@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Globe, Rocket, Loader2, Sparkles } from "lucide-react";
+import { Globe, Rocket, Loader2, Compass, ShieldAlert } from "lucide-react";
 import { useSection } from "@/lib/hooks";
 import { api, fmtCurrency, fmtNumber } from "@/lib/api";
 import { PageSkeleton, ErrorState } from "@/components/StateViews";
@@ -12,11 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-function Meter({ label, value, max = 100, suffix = "", color = "#10B981" }) {
+function Meter({ label, value, max = 100, suffix = "", color = "#00E599" }) {
   return (
     <div>
-      <div className="mb-1 flex justify-between text-xs"><span className="text-[#94A3B8]">{label}</span><span className="font-metric text-[#CBD5E1]">{value}{suffix}</span></div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-[#0F111A]"><div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} /></div>
+      <div className="mb-1 flex justify-between text-xs"><span className="text-[#94A3B8]">{label}</span><span className="font-metric font-semibold text-[#CBD5E1]">{value}{suffix}</span></div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-[#070C0A] border border-[#16221B]">
+        <div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} />
+      </div>
     </div>
   );
 }
@@ -50,46 +52,63 @@ export default function Markets() {
   };
 
   return (
-    <div className="space-y-8">
-      <SectionHeader title="Market Intelligence" subtitle="Where should you sell next?" icon={Globe} right={<ValueBadge kind="DEMO" />} />
+    <div className="space-y-8" data-testid="markets-page">
+      <SectionHeader
+        title="Market Intelligence & Expansion"
+        subtitle="Cross-border demand analysis, margin feasibility, and entry simulation"
+        icon={Globe}
+        right={<ValueBadge kind="DEMO" />}
+      />
 
       <Tabs defaultValue="opportunities">
-        <TabsList className="border border-[#1E2235] bg-[#0F111A]">
-          <TabsTrigger value="opportunities" data-testid="markets-tab-opps" className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-300">Opportunities</TabsTrigger>
-          <TabsTrigger value="simulator" data-testid="markets-tab-sim" className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-300">Launch Simulator</TabsTrigger>
+        <TabsList className="border border-[#16221B] bg-[#0B110E] p-1 rounded-xl">
+          <TabsTrigger
+            value="opportunities"
+            data-testid="markets-tab-opps"
+            className="rounded-lg text-xs font-medium data-[state=active]:bg-[#070C0A] data-[state=active]:text-emerald-400 data-[state=active]:border data-[state=active]:border-[#16221B] text-[#94A3B8]"
+          >
+            Regional Opportunities
+          </TabsTrigger>
+          <TabsTrigger
+            value="simulator"
+            data-testid="markets-tab-sim"
+            className="rounded-lg text-xs font-medium data-[state=active]:bg-[#070C0A] data-[state=active]:text-emerald-400 data-[state=active]:border data-[state=active]:border-[#16221B] text-[#94A3B8]"
+          >
+            Launch Feasibility Simulator
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="opportunities" className="mt-6">
           <div className="grid gap-4 lg:grid-cols-2">
             {data.markets.map((m) => (
-              <Card key={m.code} className="p-5 card-hover" data-testid={`market-card-${m.code}`}>
+              <Card key={m.code} className="p-5 sm:p-6" data-testid={`market-card-${m.code}`}>
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-display text-lg font-bold text-[#F8FAFC]">{m.flag} {m.country}</h3>
-                    <p className="text-xs text-[#64748B]">Current revenue {fmtCurrency(m.current_revenue, cur, true)}</p>
+                    <p className="text-xs text-[#64748B]">Current baseline revenue {fmtCurrency(m.current_revenue, cur, true)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-metric text-2xl font-extrabold text-emerald-400">{m.opportunity_score}</p>
-                    <p className="text-[10px] uppercase tracking-wide text-[#64748B]">Opportunity</p>
+                    <p className="font-metric text-2xl font-bold text-emerald-400">{m.opportunity_score}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-[#64748B]">Opportunity Index</p>
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3">
-                  <Meter label="Demand" value={m.demand} />
-                  <Meter label="Competition" value={m.competition} color="#F59E0B" />
-                  <Meter label="Projected margin" value={m.projected_margin} max={40} suffix="%" />
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3">
+                  <Meter label="Organic Demand" value={m.demand} />
+                  <Meter label="Competitive Saturation" value={m.competition} color="#F59E0B" />
+                  <Meter label="Projected Operating Margin" value={m.projected_margin} max={40} suffix="%" />
                   <div className="flex flex-col justify-center gap-1 text-xs">
-                    <span className="text-[#94A3B8]">Shipping: <span className="text-[#CBD5E1]">{m.shipping_complexity}</span></span>
-                    <span className="text-[#94A3B8]">Return risk: <span className="text-[#CBD5E1]">{m.return_risk}</span></span>
+                    <span className="text-[#94A3B8]">Freight Complexity: <span className="font-semibold text-[#CBD5E1]">{m.shipping_complexity}</span></span>
+                    <span className="text-[#94A3B8]">Return Vulnerability: <span className="font-semibold text-[#CBD5E1]">{m.return_risk}</span></span>
                   </div>
                 </div>
-                <div className="mt-4 flex items-start gap-2 rounded-lg bg-[#0F111A] p-3">
-                  <Sparkles size={13} className="mt-0.5 shrink-0 text-emerald-400" />
-                  <p className="text-xs text-[#CBD5E1]">
+                <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-[#16221B] bg-[#070C0A] p-3 text-xs leading-relaxed text-[#CBD5E1]">
+                  <Compass size={14} className="mt-0.5 shrink-0 text-emerald-400" />
+                  <p>
                     {m.opportunity_score >= 80
-                      ? `Strong opportunity — ${m.existing_traffic.toLowerCase()} existing traffic and healthy projected margin. Prioritize localization to lift conversion.`
+                      ? `High conviction entry — ${m.existing_traffic.toLowerCase()} organic baseline with defensible unit margins. Prioritize currency-native checkout.`
                       : m.opportunity_score >= 65
-                      ? `Promising — decent demand but watch ${m.return_risk.toLowerCase()} return risk and ${m.shipping_complexity.toLowerCase()} shipping complexity.`
-                      : `Test cautiously — higher competition or lower conversion. Start with a small budget before committing inventory.`}
+                      ? `Moderate opportunity — robust demand but requires mitigation against ${m.return_risk.toLowerCase()} return drag and ${m.shipping_complexity.toLowerCase()} freight complexity.`
+                      : `Constrained upside — elevated competitive bid pressure. Test demand with staged warehouse allocation prior to full rollout.`}
                   </p>
                 </div>
               </Card>
@@ -100,61 +119,61 @@ export default function Markets() {
         <TabsContent value="simulator" className="mt-6">
           <div className="grid gap-6 lg:grid-cols-2">
             <Card className="p-6">
-              <SectionHeader title="Simulate market entry" subtitle="Model a launch before you commit" icon={Rocket} />
+              <SectionHeader title="Simulate Regional Expansion" subtitle="Model capital requirements and margin impact" icon={Rocket} />
               <div className="mt-5 space-y-4">
                 <div>
-                  <Label className="text-[#94A3B8]">Target country</Label>
+                  <Label className="text-xs font-medium text-[#94A3B8]">Target Country</Label>
                   <Select value={sim.country} onValueChange={(v) => setSim({ ...sim, country: v })}>
-                    <SelectTrigger className="mt-1.5 border-[#2D334B] bg-[#0F111A] text-[#F8FAFC]" data-testid="sim-country"><SelectValue /></SelectTrigger>
-                    <SelectContent className="border-[#2D334B] bg-[#0F111A] text-[#F8FAFC]">
+                    <SelectTrigger className="mt-1.5 border-[#16221B] bg-[#070C0A] text-xs text-[#F8FAFC]" data-testid="sim-country"><SelectValue /></SelectTrigger>
+                    <SelectContent className="border-[#16221B] bg-[#070C0A] text-xs text-[#F8FAFC]">
                       {data.markets.map((m) => <SelectItem key={m.code} value={m.country}>{m.flag} {m.country}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 {[
-                  ["Expected price", "price"], ["Estimated monthly demand (units)", "demand_units"],
-                  ["Inventory allocation (units)", "inventory_units"], ["Marketing budget", "marketing_budget"],
+                  ["Expected Retail Price", "price"], ["Projected 30-Day Demand (units)", "demand_units"],
+                  ["Staged Inventory (units)", "inventory_units"], ["Launch Ad Budget", "marketing_budget"],
                 ].map(([label, key]) => (
                   <div key={key}>
-                    <Label className="text-[#94A3B8]">{label}</Label>
+                    <Label className="text-xs font-medium text-[#94A3B8]">{label}</Label>
                     <Input type="number" value={sim[key]} onChange={(e) => setSim({ ...sim, [key]: e.target.value })}
-                      className="mt-1.5 border-[#2D334B] bg-[#0F111A] text-[#F8FAFC]" data-testid={`sim-${key}`} />
+                      className="mt-1.5 border-[#16221B] bg-[#070C0A] text-xs text-[#F8FAFC]" data-testid={`sim-${key}`} />
                   </div>
                 ))}
-                <Button onClick={runSim} disabled={running} className="w-full bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400" data-testid="sim-run-btn">
-                  {running ? <Loader2 className="animate-spin" size={16} /> : <>Run simulation <Rocket size={15} className="ml-1.5" /></>}
+                <Button onClick={runSim} disabled={running} className="w-full bg-emerald-500 font-semibold text-emerald-950 hover:bg-emerald-400 text-xs" data-testid="sim-run-btn">
+                  {running ? <Loader2 className="animate-spin" size={16} /> : <>Calculate Expansion Economics <Rocket size={14} className="ml-1.5" /></>}
                 </Button>
               </div>
             </Card>
 
             <Card className="p-6">
               <div className="flex items-center justify-between">
-                <SectionHeader title="Projection" subtitle="Estimated / projected outcomes" />
+                <SectionHeader title="Pro Forma Projection" subtitle="Simulated unit margins and payback timeline" />
                 <ValueBadge kind="PROJECTED" />
               </div>
               {!result ? (
-                <div className="mt-10 flex flex-col items-center text-center text-sm text-[#64748B]">
-                  <Rocket size={28} className="mb-3 text-[#334155]" />
-                  Run a simulation to see projected revenue, profit and break-even.
+                <div className="mt-14 flex flex-col items-center text-center text-xs text-[#64748B]">
+                  <Rocket size={26} className="mb-3 text-[#334155]" />
+                  Execute simulation to evaluate expected return, breakeven velocity, and risk parameters.
                 </div>
               ) : (
                 <div className="mt-5 space-y-4" data-testid="sim-result">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Stat label="Projected revenue" value={fmtCurrency(result.projected_revenue, cur)} />
-                    <Stat label="Projected profit" value={fmtCurrency(result.projected_profit, cur)} />
-                    <Stat label="Est. orders (4 wk)" value={fmtNumber(result.estimated_orders)} />
-                    <Stat label="Est. CAC" value={fmtCurrency(result.estimated_cac, cur)} />
-                    <Stat label="Required inventory" value={fmtNumber(result.required_inventory)} />
-                    <Stat label="Return risk" value={`${result.estimated_return_risk}%`} sub={result.return_risk_label} />
-                    <Stat label="Break-even" value={result.breakeven_weeks ? `${result.breakeven_weeks} wk` : "—"} />
-                    <Stat label="Opportunity" value={result.opportunity_score} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Stat label="Projected Gross Revenue" value={fmtCurrency(result.projected_revenue, cur)} />
+                    <Stat label="Projected True Profit" value={fmtCurrency(result.projected_profit, cur)} />
+                    <Stat label="Est. Orders (4 wk)" value={fmtNumber(result.estimated_orders)} />
+                    <Stat label="Est. Blended CAC" value={fmtCurrency(result.estimated_cac, cur)} />
+                    <Stat label="Committed Inventory" value={fmtNumber(result.required_inventory)} />
+                    <Stat label="Expected Return Friction" value={`${result.estimated_return_risk}%`} sub={result.return_risk_label} />
+                    <Stat label="Capital Payback" value={result.breakeven_weeks ? `${result.breakeven_weeks} weeks` : "—"} />
+                    <Stat label="Feasibility Score" value={result.opportunity_score} />
                   </div>
-                  <div className="rounded-lg bg-[#0F111A] p-3">
-                    <p className="text-xs text-[#94A3B8]"><span className="font-semibold text-rose-300">Main risk: </span>{result.main_risk}</p>
+                  <div className="rounded-lg border border-[#16221B] bg-[#070C0A] p-3 text-xs leading-relaxed">
+                    <p className="text-[#94A3B8]"><span className="font-semibold text-rose-300">Primary Friction Vector: </span>{result.main_risk}</p>
                   </div>
-                  <div className="flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-                    <Sparkles size={14} className="mt-0.5 shrink-0 text-emerald-400" />
-                    <p className="text-xs text-[#CBD5E1]"><span className="font-semibold text-emerald-300">Strategy: </span>{result.strategy}</p>
+                  <div className="flex items-start gap-2.5 rounded-lg border border-emerald-500/20 bg-[#0B1A13] p-3 text-xs leading-relaxed">
+                    <Compass size={15} className="mt-0.5 shrink-0 text-emerald-400" />
+                    <p className="text-[#CBD5E1]"><span className="font-semibold text-emerald-300">Deployment Strategy: </span>{result.strategy}</p>
                   </div>
                 </div>
               )}
@@ -165,3 +184,4 @@ export default function Markets() {
     </div>
   );
 }
+

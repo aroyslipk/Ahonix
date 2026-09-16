@@ -27,30 +27,43 @@ export function Sidebar() {
   const navigate = useNavigate();
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-[#1E2235] bg-[#0B0D14] md:flex">
-      <div className="flex h-16 items-center px-5">
-        <Logo size={26} />
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-white/[0.06] bg-[#070C0A] md:flex select-none">
+      {/* Brand Header */}
+      <div className="flex h-16 items-center px-6 border-b border-white/[0.04]">
+        <Logo size={24} />
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+
+      {/* Navigation List */}
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
         {NAV.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             data-testid={item.testid}
             className={({ isActive }) =>
-              `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              `group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? "bg-emerald-500/10 text-emerald-300"
-                  : "text-[#94A3B8] hover:bg-[#161926] hover:text-[#F8FAFC]"
+                  ? "bg-[#0B1612] text-[#00E599] shadow-sm"
+                  : "text-[#94A3B8] hover:bg-[#0C120F] hover:text-[#F8FAFC]"
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <item.icon size={18} className={isActive ? "text-emerald-400" : "text-[#64748B] group-hover:text-[#94A3B8]"} />
-                <span className="flex-1">{item.name}</span>
+                {isActive && (
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#00E599]" />
+                )}
+                <item.icon
+                  size={17}
+                  className={`transition-colors ${
+                    isActive
+                      ? "text-[#00E599]"
+                      : "text-[#64748B] group-hover:text-[#94A3B8]"
+                  }`}
+                />
+                <span className="flex-1 truncate">{item.name}</span>
                 {item.badge && (
-                  <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">
+                  <span className="rounded bg-[#00E599]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#00E599]">
                     {item.badge}
                   </span>
                 )}
@@ -59,25 +72,27 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="border-t border-[#1E2235] p-3">
-        <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 text-xs font-bold text-emerald-950">
+
+      {/* Merchant Profile Footer */}
+      <div className="border-t border-white/[0.06] p-3">
+        <div className="flex items-center gap-3 rounded-xl bg-[#0B110E] border border-white/[0.05] p-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#008060] text-xs font-bold text-white">
             {(user?.name || "A").slice(0, 1).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-[#F8FAFC]">{user?.name || "Merchant"}</p>
-            <p className="truncate text-xs text-[#64748B]">{user?.email}</p>
+            <p className="truncate text-xs font-semibold text-[#F8FAFC]">{user?.name || "Merchant"}</p>
+            <p className="truncate text-[11px] text-[#64748B]">{user?.email}</p>
           </div>
           <button
             onClick={async () => {
               await logout();
               navigate("/login");
             }}
-            className="rounded-lg p-2 text-[#64748B] hover:bg-[#161926] hover:text-rose-400"
+            className="rounded-lg p-1.5 text-[#64748B] transition-colors hover:bg-white/10 hover:text-rose-400"
             data-testid="logout-btn"
             title="Sign out"
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
           </button>
         </div>
       </div>

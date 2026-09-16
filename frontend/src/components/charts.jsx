@@ -5,18 +5,18 @@ import {
 } from "recharts";
 import { fmtCurrency, fmtNumber } from "@/lib/api";
 
-const EMERALD = "#10B981";
-const CYAN = "#06B6D4";
+const EMERALD = "#00E599";
+const CYAN = "#38BDF8";
 
-const AXIS = { stroke: "#3D4560", fontSize: 11, tickLine: false, axisLine: false };
+const AXIS = { stroke: "#24332A", fill: "#64748B", fontSize: 11, tickLine: false, axisLine: false };
 
 function ChartTip({ active, payload, label, currency, prefix }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-[#2D334B] bg-[#0B0D14] px-3 py-2 shadow-xl">
-      <p className="mb-1 text-[11px] font-medium text-[#94A3B8]">{label}</p>
+    <div className="rounded-lg border border-[#16221B] bg-[#070C0A] px-3.5 py-2.5 shadow-2xl backdrop-blur-md">
+      <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[#64748B]">{label}</p>
       {payload.map((p, i) => (
-        <p key={i} className="font-metric text-sm font-semibold text-[#F8FAFC]">
+        <p key={i} className="font-metric text-sm font-bold text-[#F8FAFC]">
           {prefix === "currency" ? fmtCurrency(p.value, currency) : fmtNumber(p.value)}
         </p>
       ))}
@@ -31,7 +31,7 @@ export function Sparkline({ data = [], color = EMERALD, height = 40 }) {
       <AreaChart data={chartData} margin={{ top: 2, bottom: 2, left: 0, right: 0 }}>
         <defs>
           <linearGradient id={`spark-${color}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.4} />
+            <stop offset="0%" stopColor={color} stopOpacity={0.35} />
             <stop offset="100%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
@@ -47,13 +47,13 @@ export function TrendArea({ data, dataKey = "revenue", xKey = "week", currency =
       <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
         <defs>
           <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.35} />
-            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+            <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+            <stop offset="100%" stopColor={color} stopOpacity={0.01} />
           </linearGradient>
         </defs>
         <XAxis dataKey={xKey} {...AXIS} />
         <YAxis {...AXIS} width={48} tickFormatter={(v) => fmtNumber(v, true)} />
-        <Tooltip content={<ChartTip currency={currency} prefix="currency" />} cursor={{ stroke: "#2D334B" }} />
+        <Tooltip content={<ChartTip currency={currency} prefix="currency" />} cursor={{ stroke: "rgba(0, 229, 153, 0.2)" }} />
         <Area type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2.5} fill="url(#areaFill)" />
       </AreaChart>
     </ResponsiveContainer>
@@ -66,7 +66,7 @@ export function DualLine({ data, xKey = "week", height = 280, currency = "USD" }
       <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
         <XAxis dataKey={xKey} {...AXIS} />
         <YAxis {...AXIS} width={48} tickFormatter={(v) => fmtNumber(v, true)} />
-        <Tooltip content={<ChartTip currency={currency} prefix="currency" />} cursor={{ stroke: "#2D334B" }} />
+        <Tooltip content={<ChartTip currency={currency} prefix="currency" />} cursor={{ stroke: "rgba(255,255,255,0.1)" }} />
         <Line type="monotone" dataKey="revenue" stroke={CYAN} strokeWidth={2.5} dot={false} />
         <Line type="monotone" dataKey="profit" stroke={EMERALD} strokeWidth={2.5} dot={false} />
       </LineChart>
@@ -80,7 +80,7 @@ export function BarSeries({ data, dataKey, xKey, currency = "USD", height = 280,
       <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
         <XAxis dataKey={xKey} {...AXIS} interval={0} />
         <YAxis {...AXIS} width={48} tickFormatter={(v) => fmtNumber(v, true)} />
-        <Tooltip content={<ChartTip currency={currency} prefix={prefix} />} cursor={{ fill: "rgba(45,51,75,0.3)" }} />
+        <Tooltip content={<ChartTip currency={currency} prefix={prefix} />} cursor={{ fill: "rgba(0, 229, 153, 0.05)" }} />
         <Bar dataKey={dataKey} radius={[6, 6, 0, 0]} maxBarSize={46}>
           {data.map((_, i) => (
             <Cell key={i} fill={color} />
@@ -91,7 +91,7 @@ export function BarSeries({ data, dataKey, xKey, currency = "USD", height = 280,
   );
 }
 
-const DONUT_COLORS = [EMERALD, CYAN, "#3B82F6", "#8B5CF6", "#F59E0B", "#F43F5E"];
+const DONUT_COLORS = [EMERALD, "#008060", CYAN, "#8B5CF6", "#F59E0B", "#F43F5E"];
 
 export function Donut({ data, dataKey = "share", nameKey = "name", height = 220 }) {
   return (
@@ -103,7 +103,7 @@ export function Donut({ data, dataKey = "share", nameKey = "name", height = 220 
           ))}
         </Pie>
         <Tooltip
-          contentStyle={{ background: "#0B0D14", border: "1px solid #2D334B", borderRadius: 8, fontSize: 12 }}
+          contentStyle={{ background: "#070C0A", border: "1px solid #16221B", borderRadius: 8, fontSize: 12 }}
           itemStyle={{ color: "#F8FAFC" }}
         />
       </PieChart>
@@ -112,3 +112,4 @@ export function Donut({ data, dataKey = "share", nameKey = "name", height = 220 
 }
 
 export { DONUT_COLORS };
+
