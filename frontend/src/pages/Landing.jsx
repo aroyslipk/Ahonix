@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import {
   ArrowRight,
   Play,
@@ -23,6 +26,7 @@ import {
   FileText,
   Cpu,
   ArrowUpRight,
+  Loader2,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Hero3DScene } from "@/components/3d/Hero3DScene";
@@ -170,11 +174,43 @@ const FAQS = [
 ];
 
 export default function Landing() {
-  const [demoModalOpen, setDemoModalOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [annualBilling, setAnnualBilling] = useState(true);
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(null);
+
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handlePlanSelect = async (planId) => {
+    const interval = annualBilling ? "year" : "month";
+    if (!user) {
+      navigate(`/register?plan=${planId}&interval=${interval}`);
+      return;
+    }
+
+    setCheckoutLoading(planId);
+    try {
+      const { data } = await api.post("/billing/create-checkout-session", {
+        plan_id: planId,
+        interval,
+      });
+      if (data?.checkout_url) {
+        if (data.mode === "sandbox") {
+          toast.success("Sandbox Mode: Subscription tier activated!");
+          navigate("/app/settings?billing=sandbox_activated");
+        } else {
+          window.location.assign(data.checkout_url);
+        }
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to initiate Stripe Checkout.");
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
 
   const heroRef = useRef(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -794,12 +830,14 @@ export default function Landing() {
                 </div>
               </div>
 
-              <Link
-                to="/register"
-                className="mt-6 sm:mt-8 block w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
+              <button
+                onClick={() => handlePlanSelect("starter")}
+                disabled={checkoutLoading === "starter"}
+                className="mt-6 sm:mt-8 flex items-center justify-center gap-2 w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
               >
-                Start 14-Day Free Trial
-              </Link>
+                {checkoutLoading === "starter" ? <Loader2 size={13} className="animate-spin" /> : null}
+                {checkoutLoading === "starter" ? "Connecting to Stripe..." : "Start 14-Day Free Trial"}
+              </button>
             </div>
 
             {/* Growth Tier (Featured) */}
@@ -849,12 +887,14 @@ export default function Landing() {
                 </div>
               </div>
 
-              <Link
-                to="/register"
-                className="mt-6 sm:mt-8 block w-full rounded-full bg-[#00E599] py-3.5 text-center text-xs font-bold text-[#040706] shadow-lg shadow-[#00E599]/20 transition-all hover:bg-[#00c984] hover:scale-[1.02]"
+              <button
+                onClick={() => handlePlanSelect("growth")}
+                disabled={checkoutLoading === "growth"}
+                className="mt-6 sm:mt-8 flex items-center justify-center gap-2 w-full rounded-full bg-[#00E599] py-3.5 text-center text-xs font-bold text-[#040706] shadow-lg shadow-[#00E599]/20 transition-all hover:bg-[#00c984] hover:scale-[1.02]"
               >
-                Start 14-Day Free Trial →
-              </Link>
+                {checkoutLoading === "growth" ? <Loader2 size={13} className="animate-spin text-[#040706]" /> : null}
+                {checkoutLoading === "growth" ? "Connecting to Stripe..." : "Start 14-Day Free Trial →"}
+              </button>
             </div>
 
             {/* Enterprise Tier */}
@@ -900,12 +940,14 @@ export default function Landing() {
                 </div>
               </div>
 
-              <Link
-                to="/register"
-                className="mt-6 sm:mt-8 block w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
+              <button
+                onClick={() => handlePlanSelect("enterprise")}
+                disabled={checkoutLoading === "enterprise"}
+                className="mt-6 sm:mt-8 flex items-center justify-center gap-2 w-full rounded-full border border-[#16221B] bg-[#0B110E] py-3 text-center text-xs font-bold text-[#F8FAFC] transition-colors hover:border-[#00E599]/40 hover:bg-[#0F1A14]"
               >
-                Launch Enterprise Sandbox
-              </Link>
+                {checkoutLoading === "enterprise" ? <Loader2 size={13} className="animate-spin" /> : null}
+                {checkoutLoading === "enterprise" ? "Connecting to Stripe..." : "Launch Enterprise Sandbox"}
+              </button>
             </div>
           </div>
         </div>

@@ -30,6 +30,8 @@ import shopify_sync
 import meta_integration
 import google_ads_integration
 import marketing_cron
+import billing
+import stripe_integration
 import ai_analyst
 from ai_analyst import (
     SYSTEM_PROMPT,
@@ -88,6 +90,8 @@ async def get_active_workspace(user: dict):
 shopify_integration.init_shopify(db, get_active_workspace)
 meta_integration.init_meta(db, get_active_workspace)
 google_ads_integration.init_google_ads(db, get_active_workspace)
+billing.init_billing(db, get_active_workspace)
+stripe_integration.init_stripe(db, get_active_workspace)
 marketing_cron.init_cron(db)
 
 
@@ -786,6 +790,8 @@ app.include_router(auth.router)
 app.include_router(shopify_integration.router)
 app.include_router(meta_integration.router)
 app.include_router(google_ads_integration.router)
+app.include_router(billing.router)
+app.include_router(stripe_integration.router)
 app.include_router(marketing_cron.router)
 app.include_router(api)
 

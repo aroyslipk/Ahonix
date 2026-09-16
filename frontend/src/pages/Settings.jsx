@@ -19,6 +19,11 @@ import {
   ChevronUp,
   Save,
   Search,
+  CreditCard,
+  Sparkles,
+  Shield,
+  Zap,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -389,6 +394,154 @@ export default function Settings() {
   const [googleAccounts, setGoogleAccounts] = React.useState(null);
   const [googleAccountsLoading, setGoogleAccountsLoading] = React.useState(false);
 
+  // Stripe SaaS Billing state
+  const [billingStatus, setBillingStatus] = React.useState(null);
+  const [billingLoading, setBillingLoading] = React.useState(true);
+  const [plansList, setPlansList] = React.useState([]);
+  const [showPlanModal, setShowPlanModal] = React.useState(false);
+  const [selectedInterval, setSelectedInterval] = React.useState("month");
+  const [checkoutLoading, setCheckoutLoading] = React.useState(null);
+  const [portalLoading, setPortalLoading] = React.useState(false);
+
+  // Stripe Merchant Store Connector state
+  const [stripeStatus, setStripeStatus] = React.useState(null);
+  const [stripeLoading, setStripeLoading] = React.useState(true);
+  const [showStripeInput, setShowStripeInput] = React.useState(false);
+  const [stripeApiKey, setStripeApiKey] = React.useState("");
+  const [stripeConnecting, setStripeConnecting] = React.useState(false);
+  const [stripeSyncing, setStripeSyncing] = React.useState(false);
+  const [stripeDisconnecting, setStripeDisconnecting] = React.useState(false);
+
+  const fetchBillingStatus = React.useCallback(async () => {
+    try {
+      setBillingLoading(true);
+      const { data } = await api.get("/billing/status");
+      setBillingStatus(data);
+    } catch {
+      setBillingStatus(null);
+    } finally {
+      setBillingLoading(false);
+    }
+  }, []);
+
+  const fetchPlans = React.useCallback(async () => {
+    try {
+      const { data } = await api.get("/billing/plans");
+      setPlansList(data.plans || []);
+    } catch {
+      setPlansList([]);
+    }
+  }, []);
+
+  const handleInitiateCheckout = async (planId, interval) => {
+    setCheckoutLoading(planId);
+    try {
+      const { data } = await api.post("/billing/create-checkout-session", {
+        plan_id: planId,
+        interval: interval || "month",
+      });
+      if (data?.checkout_url) {
+        if (data.mode === "sandbox") {
+          toast.success("Sandbox Mode: Subscription tier activated instantly!");
+          setShowPlanModal(false);
+          await fetchBillingStatus();
+          await qc.invalidateQueries();
+        } else {
+          toast.info("Redirecting to Stripe Checkout...");
+          window.location.assign(data.checkout_url);
+        }
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to initiate Stripe Checkout.");
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handleOpenCustomerPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const { data } = await api.post("/billing/customer-portal");
+      if (data?.portal_url) {
+        if (data.mode === "sandbox") {
+          toast.info("Sandbox Mode: Billing portal simulated. You can change plans via 'Upgrade / Change Plan'.");
+        } else {
+          window.location.assign(data.portal_url);
+        }
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to open Stripe Billing Portal.");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const fetchStripeStatus = React.useCallback(async () => {
+    try {
+      setStripeLoading(true);
+      const { data } = await api.get("/integrations/stripe/status");
+      setStripeStatus(data);
+    } catch {
+      setStripeStatus({ connected: false });
+    } finally {
+      setStripeLoading(false);
+    }
+  }, []);
+
+  const handleStripeConnect = async (mode = "sandbox") => {
+    setStripeConnecting(true);
+    try {
+      const { data } = await api.post("/integrations/stripe/connect", {
+        api_key: stripeApiKey.trim() || undefined,
+        mode: mode,
+      });
+      toast.success(data?.message || "Stripe merchant account connected!");
+      setShowStripeInput(false);
+      setStripeApiKey("");
+      await fetchStripeStatus();
+      await qc.invalidateQueries({ queryKey: ["profit"] });
+      await qc.invalidateQueries({ queryKey: ["overview"] });
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to connect Stripe merchant account.");
+    } finally {
+      setStripeConnecting(false);
+    }
+  };
+
+  const handleStripeSync = async () => {
+    setStripeSyncing(true);
+    try {
+      const { data } = await api.post("/integrations/stripe/sync", { days: 30 });
+      toast.success(data?.message || "Stripe fees synchronized into True Profit!");
+      await fetchStripeStatus();
+      await qc.invalidateQueries({ queryKey: ["profit"] });
+      await qc.invalidateQueries({ queryKey: ["overview"] });
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to sync Stripe fees.");
+      await fetchStripeStatus();
+    } finally {
+      setStripeSyncing(false);
+    }
+  };
+
+  const handleStripeDisconnect = async () => {
+    if (!window.confirm("Are you sure you want to disconnect Stripe merchant integration?")) return;
+    setStripeDisconnecting(true);
+    try {
+      await api.post("/integrations/stripe/disconnect");
+      toast.success("Stripe merchant integration disconnected.");
+      setShowStripeInput(false);
+      setStripeApiKey("");
+      await fetchStripeStatus();
+      await qc.invalidateQueries({ queryKey: ["profit"] });
+      await qc.invalidateQueries({ queryKey: ["overview"] });
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Failed to disconnect Stripe.");
+    } finally {
+      setStripeDisconnecting(false);
+    }
+  };
+
   const fetchShopifyStatus = React.useCallback(async () => {
     try {
       const { data } = await api.get("/integrations/shopify/status");
@@ -569,10 +722,23 @@ export default function Settings() {
     fetchShopifyStatus();
     fetchMetaStatus();
     fetchGoogleStatus();
+    fetchBillingStatus();
+    fetchPlans();
+    fetchStripeStatus();
 
-    // Check for OAuth callback redirect parameters in query string
+    // Check for OAuth or billing callback redirect parameters in query string
     const params = new URLSearchParams(window.location.search);
     let shouldClear = false;
+
+    if (params.get("billing") === "success" || params.get("billing") === "sandbox_activated") {
+      const p = params.get("plan") || "subscription";
+      toast.success(`Successfully activated ${p.toUpperCase()} tier!`);
+      fetchBillingStatus();
+      shouldClear = true;
+    } else if (params.get("billing") === "canceled") {
+      toast.info("Checkout was canceled. No charges were made.");
+      shouldClear = true;
+    }
 
     if (params.get("shopify") === "connected") {
       toast.success("Shopify store connected successfully!");
@@ -616,6 +782,9 @@ export default function Settings() {
     fetchShopifyStatus,
     fetchMetaStatus,
     fetchGoogleStatus,
+    fetchBillingStatus,
+    fetchPlans,
+    fetchStripeStatus,
     fetchMetaAccounts,
     fetchGoogleAccounts,
     qc,
@@ -755,6 +924,90 @@ export default function Settings() {
             </div>
           ))}
         </div>
+      </Card>
+
+      {/* SaaS Subscription & Billing Card */}
+      <Card className="p-6 border-[#16221B] bg-[#070C0A]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <SectionHeader
+            title="SaaS Subscription & Billing"
+            subtitle="Manage your AHONIX operating system tier, customer invoices, and platform access"
+            icon={CreditCard}
+          />
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleOpenCustomerPortal}
+              disabled={portalLoading}
+              className="border-[#16221B] bg-[#0B110E] text-xs font-semibold text-[#F8FAFC] hover:bg-[#121C16] hover:border-[#1F3327] rounded-xl"
+              data-testid="billing-portal-btn"
+            >
+              {portalLoading ? <Loader2 size={13} className="animate-spin mr-1.5" /> : <ExternalLink size={13} className="mr-1.5 text-[#00E599]" />}
+              Customer Portal
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setShowPlanModal(true)}
+              className="bg-[#00E599] text-xs font-bold text-[#040706] hover:bg-[#00c984] rounded-xl px-3.5"
+              data-testid="upgrade-plan-btn"
+            >
+              <Sparkles size={13} className="mr-1.5" />
+              Upgrade / Change Plan
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4">
+            <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Active Plan</p>
+            <div className="mt-1 flex items-center gap-2">
+              <p className="text-base font-bold text-[#F8FAFC] capitalize">{billingStatus?.plan_name || "Growth"}</p>
+              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-[#00E599] border border-emerald-500/20">
+                {billingStatus?.interval === "year" ? "Annual" : "Monthly"}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4">
+            <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Subscription Status</p>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#00E599] animate-pulse" />
+              <p className="text-sm font-semibold text-[#F8FAFC] capitalize">
+                {billingStatus?.status === "trialing"
+                  ? `Trial (${billingStatus.trial_days_remaining}d left)`
+                  : billingStatus?.status || "Active"}
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4">
+            <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Renewal / End Date</p>
+            <p className="mt-1 text-sm font-semibold text-[#CBD5E1]">
+              {billingStatus?.current_period_end
+                ? new Date(billingStatus.current_period_end).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+                : "—"}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4">
+            <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Payment Gateway</p>
+            <p className="mt-1 text-xs font-semibold text-[#94A3B8]">
+              {billingStatus?.is_sandbox ? "Sandbox Sandbox Mode" : "Stripe Live Production"}
+            </p>
+          </div>
+        </div>
+
+        {billingStatus?.features && (
+          <div className="mt-4 pt-4 border-t border-[#16221B] flex flex-wrap items-center gap-2.5">
+            <span className="text-xs text-[#64748B] font-medium mr-1">Plan features:</span>
+            {billingStatus.features.slice(0, 4).map((f, i) => (
+              <span key={i} className="inline-flex items-center gap-1.5 rounded-lg border border-[#16221B] bg-[#0B110E] px-2.5 py-1 text-xs text-[#CBD5E1]">
+                <Check size={12} className="text-[#00E599]" /> {f}
+              </span>
+            ))}
+          </div>
+        )}
       </Card>
 
       {/* Integrations Section */}
@@ -957,9 +1210,163 @@ export default function Settings() {
           />
         </div>
 
+        {/* Stripe Merchant Store Connector Card */}
+        <div className="mt-4 rounded-xl border border-[#16221B] bg-[#0B110E] p-4 transition-all hover:border-[#1F3327]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold text-sm">
+                <CreditCard size={18} />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-[#F8FAFC]">Stripe Merchant Payments</p>
+                  {stripeLoading ? (
+                    <Loader2 size={13} className="animate-spin text-[#64748B]" />
+                  ) : stripeStatus?.connected ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-[#00E599] border border-emerald-500/20" data-testid="stripe-connected-badge">
+                      <CheckCircle2 size={11} /> Connected ({stripeStatus.mode === "live" ? "Live" : "Sandbox"})
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-[#121C16] border border-[#16221B] px-2 py-0.5 text-[11px] text-[#64748B]">
+                      Payment Gateway
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#64748B] mt-0.5">
+                  {stripeStatus?.connected
+                    ? `Account: ${stripeStatus.account_id} · Ingesting card processing fees into True Profit waterfall`
+                    : "Connect Stripe to automatically deduct card fees (2.9% + $0.30/txn) from gross revenue in True Profit"}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              {stripeStatus?.connected ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleStripeSync}
+                    disabled={stripeSyncing}
+                    className="border-[#16221B] bg-[#121C16] text-xs font-semibold text-[#F8FAFC] hover:bg-[#16221B] rounded-lg"
+                    data-testid="stripe-sync-btn"
+                  >
+                    <RefreshCw size={13} className={`mr-1.5 ${stripeSyncing ? "animate-spin text-[#00E599]" : ""}`} />
+                    {stripeSyncing ? "Syncing..." : "Sync Fees"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleStripeDisconnect}
+                    disabled={stripeDisconnecting}
+                    className="text-xs text-rose-400 hover:bg-rose-950/20 hover:text-rose-300 rounded-lg"
+                    data-testid="stripe-disconnect-btn"
+                  >
+                    {stripeDisconnecting ? <Loader2 size={13} className="animate-spin" /> : <><Unlink size={13} className="mr-1" /> Disconnect</>}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowStripeInput(!showStripeInput)}
+                  className="border-indigo-500/30 bg-indigo-500/10 text-xs font-semibold text-indigo-400 hover:bg-indigo-500/20 rounded-lg"
+                  data-testid="connect-stripe-btn"
+                >
+                  {showStripeInput ? "Cancel" : "Connect Stripe"}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Connect Input Form */}
+          {!stripeStatus?.connected && showStripeInput && (
+            <div className="mt-4 rounded-xl border border-[#16221B] bg-[#070C0A] p-4" data-testid="stripe-connect-form">
+              <p className="text-xs font-medium text-[#F8FAFC] mb-2">Connect Stripe Account:</p>
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <input
+                    type="password"
+                    value={stripeApiKey}
+                    onChange={(e) => setStripeApiKey(e.target.value)}
+                    placeholder="rk_live_... or sk_test_... (or leave blank for Sandbox)"
+                    className="w-full rounded-xl border border-[#16221B] bg-[#0B110E] px-3.5 py-2 text-xs text-[#F8FAFC] placeholder-[#64748B] focus:border-[#00E599] focus:outline-none font-mono"
+                    data-testid="stripe-api-key-input"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleStripeConnect(stripeApiKey.trim() ? "live" : "sandbox")}
+                    disabled={stripeConnecting}
+                    className="bg-[#00E599] text-xs font-bold text-[#040706] hover:bg-[#00c984] rounded-xl px-4 py-2 shrink-0"
+                    data-testid="stripe-submit-connect-btn"
+                  >
+                    {stripeConnecting ? <Loader2 size={13} className="animate-spin mr-1.5" /> : <ExternalLink size={13} className="mr-1.5" />}
+                    {stripeApiKey.trim() ? "Connect Live API Key" : "Connect Demo Sandbox"}
+                  </Button>
+                </div>
+                <p className="text-[11px] text-[#64748B]">
+                  Tokens are encrypted with AES-256-GCM. We only require read-only balance permissions (<code className="text-indigo-400">rak_balance_read</code>) to compute transaction processing deductions.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Sync Status Subpanel */}
+          {stripeStatus?.connected && (
+            <div className="mt-3.5 border-t border-[#16221B] pt-3 text-xs text-[#64748B]" data-testid="stripe-sync-status-panel">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <span>
+                    Ingestion Status:{" "}
+                    <span className={`font-semibold ${
+                      stripeStatus.sync_status === "success"
+                        ? "text-[#00E599]"
+                        : stripeStatus.sync_status === "failed"
+                        ? "text-rose-400"
+                        : stripeStatus.sync_status === "syncing"
+                        ? "text-cyan-400"
+                        : "text-[#94A3B8]"
+                    }`}>
+                      {stripeStatus.sync_status?.toUpperCase() || "IDLE"}
+                    </span>
+                  </span>
+                  <span>·</span>
+                  <span>
+                    Last Synced:{" "}
+                    <span className="text-[#CBD5E1]">
+                      {stripeStatus.last_synced_at
+                        ? new Date(stripeStatus.last_synced_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        : "Never"}
+                    </span>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-[11px]">
+                  <span className="rounded-lg bg-[#070C0A] px-2.5 py-1 text-[#94A3B8] border border-[#16221B]">
+                    Fee Rate: <strong className="text-[#F8FAFC]">{stripeStatus.fee_rate_pct || 2.9}% + $0.30</strong>
+                  </span>
+                  {stripeStatus.total_fees_synced > 0 && (
+                    <span className="rounded-lg bg-emerald-500/10 px-2.5 py-1 text-[#00E599] border border-emerald-500/20 font-semibold">
+                      ${Number(stripeStatus.total_fees_synced).toLocaleString(undefined, { minimumFractionDigits: 2 })} Fees Deducted
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {stripeStatus.sync_error && (
+                <div className="mt-2.5 flex items-center gap-2 rounded-lg bg-rose-950/20 px-3 py-2 text-xs text-rose-300 border border-rose-900/30">
+                  <AlertCircle size={14} className="shrink-0 text-rose-400" />
+                  <span>Sync Error: {stripeStatus.sync_error}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Other integrations (architecture-ready) */}
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {INTEGRATIONS.filter((it) => !["Shopify", "Meta Ads", "Google Ads"].includes(it.name)).map((it) => (
+          {INTEGRATIONS.filter((it) => !["Shopify", "Meta Ads", "Google Ads", "Stripe"].includes(it.name)).map((it) => (
             <div key={it.name} className="flex items-center justify-between rounded-xl border border-[#16221B] bg-[#0B110E] px-4 py-3 opacity-75">
               <div>
                 <p className="text-sm font-semibold text-[#F8FAFC]">{it.name}</p>
@@ -1030,6 +1437,148 @@ export default function Settings() {
           </div>
         </div>
       </Card>
+
+      {/* Plan Selector Modal */}
+      {showPlanModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in"
+          onClick={() => setShowPlanModal(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[#16221B] bg-[#070C0A] p-6 sm:p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowPlanModal(false)}
+              className="absolute right-5 top-5 rounded-lg border border-[#16221B] bg-[#0B110E] p-1.5 text-[#94A3B8] hover:text-white"
+              aria-label="Close modal"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="text-center max-w-lg mx-auto">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[#16221B] bg-[#0B1410] px-3 py-1 text-xs font-semibold text-[#00E599] mb-3">
+                <Sparkles size={13} />
+                <span>AHONIX OPERATING SYSTEM TIERS</span>
+              </div>
+              <h3 className="font-display text-2xl font-bold text-[#F8FAFC]">
+                Select the Right Plan for Your Scale
+              </h3>
+              <p className="mt-1 text-xs text-[#94A3B8]">
+                All plans include 14 days free trial. Cancel or change tiers at any time via Stripe Portal.
+              </p>
+
+              {/* Monthly / Annual Toggle */}
+              <div className="mt-5 inline-flex items-center rounded-full border border-[#16221B] bg-[#0B110E] p-1">
+                <button
+                  onClick={() => setSelectedInterval("month")}
+                  className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                    selectedInterval === "month"
+                      ? "bg-[#16221B] text-[#F8FAFC]"
+                      : "text-[#94A3B8] hover:text-[#F8FAFC]"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setSelectedInterval("year")}
+                  className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                    selectedInterval === "year"
+                      ? "bg-[#00E599] text-[#040706]"
+                      : "text-[#94A3B8] hover:text-[#F8FAFC]"
+                  }`}
+                >
+                  <span>Annual</span>
+                  <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-[10px] font-bold">SAVE 20%</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Plans Grid */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+              {plansList.map((plan) => {
+                const isCurrent = billingStatus?.plan_id === plan.id;
+                const isPopular = plan.popular;
+                const price = selectedInterval === "year" ? plan.annual_price : plan.monthly_price;
+
+                return (
+                  <div
+                    key={plan.id}
+                    className={`relative flex flex-col justify-between rounded-2xl border p-5 sm:p-6 transition-all ${
+                      isPopular
+                        ? "border-[#00E599] bg-[#08130E] shadow-xl shadow-[#00E599]/10"
+                        : "border-[#16221B] bg-[#0B110E] hover:border-[#1F3327]"
+                    }`}
+                  >
+                    {isPopular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#00E599] px-3 py-0.5 text-[10px] font-extrabold tracking-wider text-[#040706] uppercase">
+                        Most Popular
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-display text-lg font-bold text-[#F8FAFC]">{plan.name}</h4>
+                        <span className="font-mono text-[11px] text-[#64748B]">{plan.stores_limit === 999 ? "Unlimited Stores" : `${plan.stores_limit} Store`}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-[#94A3B8] min-h-[32px]">{plan.tagline}</p>
+
+                      <div className="mt-4 flex items-baseline gap-1">
+                        <span className="font-display text-3xl font-extrabold text-[#F8FAFC]">
+                          ${price}
+                        </span>
+                        <span className="text-xs text-[#64748B]">/ month</span>
+                      </div>
+                      {selectedInterval === "year" && (
+                        <p className="text-[11px] text-[#00E599] mt-0.5">Billed annually (${price * 12}/yr)</p>
+                      )}
+
+                      <div className="mt-5 space-y-2 border-t border-[#16221B] pt-4">
+                        {plan.features.map((f, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-xs text-[#CBD5E1]">
+                            <Check size={13} className="text-[#00E599] shrink-0" />
+                            <span>{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-[#16221B]">
+                      {isCurrent ? (
+                        <Button
+                          disabled
+                          variant="outline"
+                          className="w-full border-emerald-500/30 bg-emerald-500/10 text-xs font-bold text-[#00E599] rounded-xl"
+                        >
+                          <Check size={13} className="mr-1.5" /> Current Plan
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleInitiateCheckout(plan.id, selectedInterval)}
+                          disabled={checkoutLoading === plan.id}
+                          className={`w-full text-xs font-bold rounded-xl py-2.5 ${
+                            isPopular
+                              ? "bg-[#00E599] text-[#040706] hover:bg-[#00c984] shadow-md shadow-[#00E599]/20"
+                              : "border border-[#16221B] bg-[#070C0A] text-[#F8FAFC] hover:bg-[#121C16] hover:border-[#1F3327]"
+                          }`}
+                          data-testid={`select-plan-${plan.id}`}
+                        >
+                          {checkoutLoading === plan.id ? (
+                            <Loader2 size={13} className="animate-spin mr-1.5" />
+                          ) : (
+                            <Sparkles size={13} className="mr-1.5" />
+                          )}
+                          {checkoutLoading === plan.id ? "Connecting to Stripe..." : `Upgrade to ${plan.name}`}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
