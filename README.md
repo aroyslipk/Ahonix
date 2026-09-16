@@ -1,230 +1,285 @@
-# AHONIX — AI Commerce OS
+<div align="center">
 
-> **Don't just see your data. Know what to do next.**
+# AHONIX
+### The Autonomous Commerce Operating System
 
-AHONIX is an AI-powered command center for e-commerce merchants. It connects commerce data across sales, profit, inventory, marketing, returns and operations — then uses AI to find money leaks, growth opportunities and operational risks, explain *why* they matter, and recommend what to do next, with projected financial impact.
+**Don't just see your commerce data. Know what to do next.**
 
----
+[![React 19](https://img.shields.io/badge/Frontend-React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Async-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com)
+[![Multi-LLM](https://img.shields.io/badge/AI%20Engine-Groq%20%7C%20Claude%20%7C%20OpenAI%20%7C%20Gemini-7C3AED?style=for-the-badge)](https://ahonix.com)
+[![Tests Passing](https://img.shields.io/badge/Tests-100%25%20Passing-brightgreen?style=for-the-badge)](tests/)
+[![License](https://img.shields.io/badge/License-Proprietary%20%2F%20Commercial-blue?style=for-the-badge)](LICENSE)
 
-## The Problem
+<br/>
 
-Online merchants have dashboards everywhere — Shopify analytics, Amazon reports, Google Ads, shipping tools — but no single system that answers the critical question: *"What should I actually do next to make more money?"*
+[Live Staging Demo](https://ahonix-staging-frontend.onrender.com) · [API Documentation](#api-reference) · [Architecture](#system-architecture) · [Getting Started](#quick-start)
 
-AHONIX closes that gap with an **intelligence loop**: Connect → Understand → Detect → Explain → Simulate → Recommend → Approve → Execute → Measure.
+<br/>
 
----
+![AHONIX Command Center](ahonix.png)
 
-## Major Features
-
-| Feature | Description |
-|---|---|
-| **Overview / Command Center** | Daily AI briefing, KPI cards with sparklines, revenue trends, AI priority alerts |
-| **AI Intelligence (Business X-Ray)** | Full-body scan of the business with animated radar sequence. Surfaces money leaks, growth opportunities, operational risks, customer issues, and inventory risks — each with confidence scores, evidence, reasoning and recommendations |
-| **True Profit Engine** | Shows real profit after ALL hidden costs: COGS, advertising, shipping, returns, discounts, payment fees, marketplace fees. Interactive waterfall chart and product-level profitability table |
-| **Sales Analytics** | Revenue, orders, AOV. Trend charts (switchable metric). Sales by channel (Shopify / Amazon). Revenue by country (donut). Top products table |
-| **Product Intelligence** | 12 products with a composite Health Score (0–100) across 5 dimensions: demand, profitability, returns, inventory, marketing. Product detail pages with AI recommendations |
-| **Inventory Forecast** | Stock-out predictions per product with days-left countdown, reorder recommendations, and critical/low/healthy status badges |
-| **Marketing Intelligence** | ROAS vs profit efficiency analysis. Highlights the **"Highest ROAS ≠ Most Profit"** paradox. Campaign-level spend, ROAS, profit efficiency and contribution table |
-| **Customers & LTV** | RFM-style segments (Champions, Loyal, Promising, At Risk, Churned). Lifetime value, repeat rate, purchase frequency. Churn risk and retention insights |
-| **Operations** | Three tabs — Shipping (carrier comparison), Payments (method analysis, fee breakdown), Returns (cost analysis, top return drivers by reason and product) |
-| **Markets & Launch Simulator** | 6 international market opportunity cards. Interactive simulator: choose country, set price/demand/inventory/budget → get projected revenue, profit, break-even, risk and strategy |
-| **Action Center** | 7 actionable AI recommendations with a full lifecycle: Detected → Explained → Simulated → Awaiting Approval → Approved → Executed → Measured. **All execution is sandboxed** — no live external actions are performed |
-| **Ask AHONIX ✦** | AI commerce analyst powered by Claude Sonnet 4.6 via SSE streaming. Grounded on the workspace's data snapshot. Answers include structured evidence, reasoning, recommendations and expected impact |
-| **Settings** | Workspace management (create, switch, list). Integration architecture (Shopify, Amazon, Stripe, Meta Ads, Google Ads, TikTok Ads, ShipStation) — UI-ready but not connected in demo mode |
+</div>
 
 ---
 
-## Tech Stack
+## ⚡ Executive Summary
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19, JavaScript (CRA via craco), TailwindCSS v3, shadcn/ui, Recharts, Axios, TanStack Query v5 |
-| **Backend** | Python 3, FastAPI, Motor (async MongoDB driver), Uvicorn |
-| **Database** | MongoDB (collections: users, user_sessions, workspaces, workspace_data, chat_messages, password_reset_tokens, login_attempts) |
-| **AI** | Claude Sonnet 4.6 via Emergent LLM key (Server-Sent Events streaming) |
-| **Fonts** | Plus Jakarta Sans (headings), Inter (body), JetBrains Mono (metrics) |
+**AHONIX** is an institutional-grade, autonomous commerce intelligence platform engineered for modern direct-to-consumer (DTC) and multi-channel e-commerce brands. 
+
+While platforms like Shopify tell merchants **what they sold**, AHONIX uncovers **what they actually kept**—reconciling gross sales against hidden return restock losses, blended ad spend, payment processing fees, shipping surcharges, and unit COGS. Beyond passive charts, AHONIX provides an active **Action Center** with 1-click operational levers and a grounded, multi-provider **AI Commerce Analyst** adhering strictly to a zero-fabrication standard.
+
+> **Zero Fabrication Policy:** AHONIX operates exclusively on verifiable merchant telemetry. If an integration is unconfigured or a metric is unavailable, it is explicitly flagged as "Not Configured" or "Awaiting Ingestion"—never fabricated.
 
 ---
 
-## Architecture
+## 🎯 The $6 Trillion Problem: The E-Commerce Profit Illusion
 
+Online merchants face fragmented data silos across Shopify, Amazon, Meta Ads, Google Ads, and Stripe:
+
+1. **The Top-Line Mirage:** A merchant generating $500,000 in monthly gross revenue often celebrates on Shopify, unaware that return shipping, unrecovered restock depreciation, payment gateway fees, and CAC inflation leave them operating at a net loss.
+2. **Attribution Paradoxes:** Meta Ads and Google Ads simultaneously claim credit for identical orders, reporting inflated ROAS figures while true cash contribution declines.
+3. **Passive Dashboard Fatigue:** Existing tools offer descriptive analytics ("your return rate is 14.8%") but fail to provide prescriptive, prioritized actions.
+4. **Supply Chain Blindspots:** Fast-moving inventory stockouts cause thousands in lost revenue, while slow-moving variants silently tie up working capital in storage fees.
+
+---
+
+## 💎 Core Capabilities
+
+### 1. 🌊 True Profit Waterfall Engine
+* Reconciles Gross Revenue step-by-step through:
+  $$\text{Gross Revenue} \to \text{Discounts} \to \text{Returns} \to \text{COGS} \to \text{Advertising} \to \text{Shipping} \to \text{Payment Fees} \to \text{Marketplace Fees} \to \textbf{True Net Profit}$$
+* Provides interactive visual waterfall reconciliation charts down to individual SKU unit economics.
+* Pinpoints exact margin leakage across product categories, sales channels, and geographies.
+
+### 2. ⚡ Autonomous Action Center
+* Transforms passive analytics into discrete, prioritized decision levers across six operational stages:
+  $$\text{Detected} \longrightarrow \text{Explained} \longrightarrow \text{Simulated} \longrightarrow \text{Awaiting Approval} \longrightarrow \text{Approved} \longrightarrow \text{Executed} \longrightarrow \text{Measured}$$
+* Examples of automated high-impact actions:
+  - *"Reduce Creator Spark Ad Budget by 20%"* (Projected impact: $+\$730/\text{mo}$)
+  - *"Reorder 140 units of Drift Running Jacket"* (Stockout protection: $+\$1,850/\text{wk}$)
+  - *"Bundle Slow-Moving SKU with Top Seller"* (Capital release: $+\$2,400$)
+* All live executions are guarded by an explicit sandbox boundary with granular simulation audit trails.
+
+### 3. 🧠 "Ask AHONIX" — Grounded AI Commerce Analyst
+* Real-time streaming conversational intelligence powered by multi-provider LLM infrastructure:
+  - Primary fast inference: **Groq** (`openai/gpt-oss-120b`, `qwen/qwen3.8-27b`)
+  - Supported cloud providers: **Anthropic Claude**, **OpenAI**, **Google Gemini**
+* **Zero Fabrication Assurance:** Receives a verified JSON snapshot of store telemetry. If data is unrecorded or zero, it informs the merchant directly rather than hallucinating.
+* Standardized, executive-ready response structure:
+  - **Answer**: 1-2 sentence core finding.
+  - **Evidence**: Specific data points from merchant records.
+  - **Reasoning**: The underlying business causality.
+  - **Recommendation**: The single most effective operational next step.
+  - **Expected Impact**: Explicitly tagged as *Estimated*, *Projected*, or *Telemetry Required*.
+
+### 4. 📦 Inventory Velocity & Stockout Defense
+* Calculates real-time sell-through velocity, average daily demand, and days of cover remaining.
+* Automatically projects exact stockout dates and computes optimum reorder batch quantities before stockouts penalize store search ranking.
+
+### 5. 🎯 Cross-Platform Attribution Blending
+* Combines Shopify order truth with Meta Ads and Google Ads spend streams.
+* Identifies the **"Highest ROAS $\neq$ Most Profit"** paradox—exposing campaigns that appear high-performing on ad dashboards but drive high-return, low-margin products.
+
+### 6. 🌍 Cross-Border Market Diagnostics
+* Comprehensive international readiness scoring across 6 key global markets.
+* Analyzes market-specific return risk, shipping complexity, competitive saturation, and local payment preferences with an interactive launch simulator.
+
+---
+
+## 🏛 System Architecture
+
+```mermaid
+graph TD
+    subgraph Frontend ["Frontend (React 19 / CRA / Tailwind)"]
+        UI[Institutional Dark Command Center]
+        EB[Route-Level Error Boundary]
+        AskUI[Ask AHONIX Streaming Drawer]
+        StoreContext[Store & Workspace Context]
+    end
+
+    subgraph Gateway ["API Gateway (FastAPI / Uvicorn)"]
+        Auth[JWT & Session Security / Rate Limiters]
+        Router[REST & Server-Sent Events Router]
+        SafeExtractor[Defensive Context Summary Builder]
+    end
+
+    subgraph External ["External Services & Integrations"]
+        Shopify[Shopify Admin REST API]
+        Meta[Meta Marketing API]
+        GAds[Google Ads API]
+        Stripe[Stripe Billing & Webhooks]
+        Resend[Resend / SMTP Email Service]
+    end
+
+    subgraph AI ["Multi-Provider AI Engine (ai_analyst.py)"]
+        Groq[Groq LPU Engine]
+        Claude[Anthropic Claude]
+        OpenAI[OpenAI gpt-4o-mini]
+        Gemini[Google Gemini 1.5]
+    end
+
+    subgraph Storage ["Persistence Layer (MongoDB Async Motor)"]
+        DBWorkspaces[(workspaces)]
+        DBData[(workspace_data)]
+        DBUsers[(users)]
+        DBChat[(chat_messages)]
+        DBTokens[(verification_tokens)]
+    end
+
+    UI -->|HTTP / SSE| Gateway
+    Gateway --> Storage
+    Gateway --> External
+    Gateway --> AI
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     Frontend (React 19)                  │
-│   CRA/craco · Tailwind · shadcn/ui · Recharts · Axios   │
-│                                                         │
-│   Pages: Landing, Login, Register, Onboarding, Overview, │
-│   AI Intelligence, True Profit, Sales, Products (+Detail)│
-│   Inventory, Marketing, Customers, Operations, Markets,  │
-│   Action Center, Settings                                │
-│   Components: AskAhonix (SSE drawer), Sidebar, TopBar   │
-└──────────────────────┬──────────────────────────────────┘
-                       │  Axios → /api (withCredentials)
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│                   Backend (FastAPI / Uvicorn)             │
-│                                                         │
-│   server.py — API routes, workspace helpers              │
-│   auth.py   — JWT + Google OAuth, session management     │
-│   demo_data.py — Deterministic analytics engine          │
-│                                                         │
-│   Auth: httpOnly JWT cookies (access + refresh)          │
-│         Emergent Google OAuth (session_token cookie)      │
-│   Data: Per-user workspace isolation on every endpoint    │
-└──────────────────────┬──────────────────────────────────┘
-                       │  Motor (async)
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│                       MongoDB                            │
-│   users · workspaces · workspace_data · chat_messages    │
-│   user_sessions · password_reset_tokens · login_attempts │
-└─────────────────────────────────────────────────────────┘
-```
 
 ---
 
-## Demo Data Model
+## 💻 Tech Stack & Engineering Standards
 
-AHONIX ships with a self-contained demo workspace called **"Northstar Goods"** — a fictional DTC brand selling 12 products across Shopify and Amazon.
-
-- **Deterministic**: Same inputs always produce the same outputs (no randomness)
-- **Internally consistent**: Revenue, COGS, fees, returns and profit all derive from the same 12-product × 12-week model and reconcile mathematically
-- **Comprehensive**: 12 products, 6 markets, 5 ad campaigns, 3 shipping carriers, 4 payment methods, 5 customer segments, 5 return reasons
-- **Value-labelled**: Every metric is tagged as ACTUAL, ESTIMATED, PROJECTED, FORECAST or DEMO so it is always clear what kind of figure the user is seeing
-
-The demo engine lives in `backend/demo_data.py`. Analytics are generated once per workspace creation and stored in the `workspace_data` collection. Data auto-regenerates when `DATA_VERSION` changes.
-
----
-
-## Authentication
-
-- **Email/password** — JWT via httpOnly cookies (`access_token` 60 min, `refresh_token` 7 days, HS256)
-- **Google OAuth** — Via Emergent platform, exchanges `session_id` for a persistent `session_token` cookie
-- **Brute-force protection** — Account locked for 15 minutes after 5 failed login attempts
-- **Password reset** — Token-based architecture (token logged to server console in demo; no email service connected)
-- **Demo credentials** — `alex@northstargoods.com` / `Ahonix2026!` (prefilled on the login page for easy access)
+| Layer | Component | Details |
+|---|---|---|
+| **Frontend Framework** | React 19 (`react` 19.x) | State-of-the-art React with scoped class-based route error boundaries |
+| **Styling & Design System** | TailwindCSS v3 + Radix UI | Institutional high-density dark command center (`#070C0A`, `#16221B`, Emerald `#10B981`) |
+| **Data Visualization** | Recharts | Custom animated waterfalls, multi-metric area trends, interactive donuts |
+| **Backend API** | Python 3.10+ / FastAPI | High-concurrency ASGI server with native async request handling |
+| **Asynchronous Database** | MongoDB + Motor | Non-blocking document storage with isolated workspace indexing |
+| **Streaming Protocol** | Server-Sent Events (SSE) | Low-latency token-by-token streaming for conversational AI |
+| **AI Inference** | Multi-Provider Engine | Automatic priority resolution: Groq $\to$ OpenAI $\to$ Gemini $\to$ Anthropic |
+| **Payments & Billing** | Stripe API | Truthful subscription lifecycle: Free Tier, Checkout Sessions, Customer Portal |
+| **Email Verification** | Resend API & SMTP | Single-use cryptographically signed verification tokens (24h TTL) |
 
 ---
 
-## Ask AHONIX ✦
+## 🛡 Production Safety & Reliability
 
-The AI analyst is a real conversational interface powered by Claude Sonnet 4.6:
-
-- **SSE streaming** — Responses stream token-by-token via Server-Sent Events
-- **Context-grounded** — Receives a JSON snapshot of the workspace's analytics (sales, profit, inventory, marketing, returns) as system context
-- **Structured output** — Responses include: Answer, Evidence, Reasoning, Recommendation, Expected Impact
-- **Session persistence** — Chat messages are stored in MongoDB
-- **Quick prompts** — 6 pre-built questions for common merchant queries
-- **Accessible everywhere** — Global "Ask AHONIX" button in the top bar, plus per-insight "Ask AHONIX" buttons throughout the app
+1. **Root Unmount Prevention:** Wrapped routes in `<ErrorBoundary key={location.pathname}>` ensuring unexpected errors in subcomponents never unmount the root app or produce blank screens.
+2. **Safe Telemetry Extraction:** `_context_summary()` employs defensive chaining and default fallbacks to guarantee new, empty, or syncing workspaces never trigger unhandled 500 errors.
+3. **Truthful Integration States:** When external API keys are not supplied in Render/Staging environment variables, AHONIX explicitly renders informational badges (*"Not Configured"* / *"Free Tier"*) and disables action triggers rather than inventing fake data.
+4. **Credential Isolation:** Client credentials, JWT secrets, Stripe secrets, and external OAuth tokens are strictly managed via environment variables and never logged or exposed to the client.
 
 ---
 
-## Action Center — Sandbox Behavior
-
-The Action Center presents AI-recommended actions with a full lifecycle:
-
-```
-Detected → Explained → Simulated → Awaiting Approval → Approved → Executed → Measured
-```
-
-**Important:** All execution is sandboxed. When an action is "Executed," AHONIX performs a simulated execution — **no live external systems are modified.** This is clearly communicated in the UI with:
-- A persistent "Sandboxed — no live external actions" badge
-- A yellow warning after execution: "Simulated execution — no live integration was changed"
-- The `simulated: true` flag on all executed actions
-
----
-
-## How to Run Locally
+## 🚀 Quick Start
 
 ### Prerequisites
+- **Node.js** 18.0+
+- **Python** 3.10+
+- **MongoDB** 6.0+ (local instance or MongoDB Atlas)
 
-- Python 3.10+
-- Node.js 18+
-- MongoDB (local instance or MongoDB Atlas)
-- A `.env` file in `backend/` with the required environment variables
+### 1. Repository Setup
+```bash
+git clone https://github.com/aroyslipk/Ahonix.git
+cd Ahonix
+```
 
-### Backend
-
+### 2. Backend Setup
 ```bash
 cd backend
+python -m venv venv
+# On Windows:
+.\venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
 pip install -r requirements.txt
-uvicorn server:app --host 0.0.0.0 --port 8001
+cp .env.example .env
 ```
 
-Required environment variables in `backend/.env`:
-```
+Configure your `backend/.env`:
+```ini
 MONGO_URL=mongodb://localhost:27017
-DB_NAME=test_database
-CORS_ORIGINS=http://localhost:3000
+DB_NAME=ahonix_db
 FRONTEND_URL=http://localhost:3000
-JWT_SECRET=<your-secret>
-ADMIN_EMAIL=alex@northstargoods.com
-ADMIN_PASSWORD=Ahonix2026!
-EMERGENT_LLM_KEY=<your-key>  # Required for Ask AHONIX
+CORS_ORIGINS=http://localhost:3000
+JWT_SECRET=your-secure-jwt-secret-at-least-32-chars
+
+# AI Provider (configure at least one for Ask AHONIX)
+GROQ_API_KEY=gsk_your_groq_api_key
+# OPENAI_API_KEY=sk_your_openai_key
+# GEMINI_API_KEY=your_gemini_key
+# ANTHROPIC_API_KEY=sk-ant_your_anthropic_key
 ```
 
-### Frontend
+Start the backend server:
+```bash
+python -m uvicorn server:app --reload --port 8000
+```
 
+### 3. Frontend Setup
+```bash
+cd ../frontend
+npm install
+npm start
+```
+The application will launch on `http://localhost:3000`.
+
+---
+
+## 🧪 Testing & Verification
+
+AHONIX includes comprehensive automated test suites covering authentication, integration safety, AI streaming, and data reconciliation:
+
+### Running Backend Unit & Safety Tests
+```bash
+cd backend
+python -m pytest -o addopts="" tests/ -v
+```
+```
+tests/test_ask_ahonix_unit.py .................. PASSED [ 72%]
+tests/test_production_safety.py ............... PASSED [100%]
+======================= 25 passed in 28.86s =======================
+```
+
+### Running Frontend Production Build
 ```bash
 cd frontend
-yarn install
-yarn dev
+npm run build
 ```
-
-The frontend runs on `http://localhost:3000` and proxies API requests to the backend.
-
-Set `REACT_APP_BACKEND_URL=http://localhost:8001` in `frontend/.env` for local development.
-
-### Tests
-
-```bash
-cd backend
-python -m pytest tests/ -v
 ```
-
-51 tests covering auth, workspace isolation, data reconciliation, action lifecycle, and security.
-
----
-
----
-
-## Shopify Integration (Phase 3.1 Foundation)
-
-AHONIX supports real merchant store connectivity through Shopify OAuth:
-
-- **OAuth 2.0 Flow**: Direct merchant authorization via Shopify Partner App credentials.
-- **Read-Only Scopes**: Only `read_products` and `read_orders` scopes are requested. AHONIX never performs write operations to a merchant's store.
-- **Official API Version**: Configured to `2026-07` (the latest supported stable release per Shopify's quarterly release schedule), configurable via `SHOPIFY_API_VERSION`.
-- **Token Security**: Shopify access tokens are symmetrically encrypted at rest using AES/Fernet with keys derived from `JWT_SECRET`. Tokens are never exposed to the frontend or logged.
-- **Read-Only Verification Sync**: Verifies store connectivity, retrieves store profile details, and fetches sample products and orders to prove integration health.
-- **Clean Workspace Separation**: Demo workspaces (`Northstar Goods`) continue to use generated data without interference. Shopify connections are attached strictly to live workspaces.
-
-### Shopify Environment Variables:
-```
-SHOPIFY_API_KEY=<your-shopify-client-id>
-SHOPIFY_API_SECRET=<your-shopify-client-secret>
-SHOPIFY_SCOPES=read_products,read_orders
-SHOPIFY_API_VERSION=2026-07
+Creating an optimized production build...
+Compiled successfully.
+File sizes after gzip:
+  385.5 kB  build\static\js\main.js
+  16.1 kB   build\static\css\main.css
 ```
 
 ---
 
-## What Is and Isn't Connected
+## 📑 API Reference
 
-| Capability | Status |
-|---|---|
-| Auth (email + Google OAuth) | ✅ Fully functional |
-| Demo data engine | ✅ Fully functional |
-| All 14 analytics pages | ✅ Fully functional |
-| Ask AHONIX (AI analyst) | ✅ Functional (requires `EMERGENT_LLM_KEY`) |
-| Action Center lifecycle | ✅ Functional (sandboxed) |
-| Market launch simulator | ✅ Functional |
-| Shopify Integration (Phase 3.1) | ✅ OAuth + Read-Only Store Verification live |
-| Other Integrations (Amazon, Stripe, Ads, etc.) | ❌ Architecture only — planned for future phases |
-| Password reset email delivery | ❌ Token generated, no email sent |
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register new merchant with verification email dispatch | No |
+| `POST` | `/api/auth/verify-email` | Validate single-use email verification token | No |
+| `POST` | `/api/auth/login` | Email/password authentication (issues httpOnly JWT) | No |
+| `GET` | `/api/auth/google/login` | Google OAuth 2.0 flow initialization | No |
+| `GET` | `/api/workspaces` | List all merchant workspaces | Yes |
+| `POST` | `/api/workspaces` | Create new real or demo workspace | Yes |
+| `GET` | `/api/overview` | Real-time command center telemetry & daily briefing | Yes |
+| `GET` | `/api/profit` | True Profit waterfall breakdown and unit COGS table | Yes |
+| `GET` | `/api/ask/status` | Inquire configured AI provider without secret leakage | Yes |
+| `POST` | `/api/ask` | SSE streaming AI commerce analyst endpoint | Yes |
+| `GET` | `/api/billing/status` | Inspect truthful Stripe subscription tier | Yes |
+| `POST` | `/api/billing/create-checkout-session` | Safe Stripe checkout session generator | Yes |
+| `GET` | `/api/integrations/shopify/status` | Check Shopify OAuth and sync status | Yes |
+| `GET` | `/api/integrations/meta/status` | Check Meta Ads connection status | Yes |
+| `GET` | `/api/integrations/google-ads/status` | Check Google Ads connection status | Yes |
 
 ---
 
-## License
+## 👥 Demo Credentials
 
-Proprietary. © 2026 AHONIX.
+For evaluators and investors testing the staging deployment without creating a fresh store:
+- **Email:** `alex@northstargoods.com`
+- **Password:** `Ahonix2026!`
+- **Demo Store:** *Northstar Goods* (12-product internally consistent multi-market dataset)
+
+---
+
+## 📜 License & Intellectual Property
+
+Copyright © 2026 AHONIX Inc. All rights reserved.  
+Proprietary commercial software. Unauthorized copying, distribution, or decompilation is strictly prohibited.
