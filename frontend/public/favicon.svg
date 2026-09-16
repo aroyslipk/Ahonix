@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="emeraldChrome" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E599" />
+      <stop offset="45%" stop-color="#008060" />
+      <stop offset="85%" stop-color="#042F22" />
+      <stop offset="100%" stop-color="#00E599" />
+    </linearGradient>
+    <linearGradient id="goldEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5E08C" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#8C6E18" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#070C0A" />
+  <path
+    d="M16 3.5L28 28.5H21.5L16 16.5L10.5 28.5H4L16 3.5Z"
+    fill="url(#emeraldChrome)"
+    stroke="url(#goldEdge)"
+    stroke-width="0.8"
+    stroke-linejoin="round"
+  />
+  <polygon
+    points="16,10 20,18.5 12,18.5"
+    fill="#070C0A"
+    stroke="url(#goldEdge)"
+    stroke-width="0.6"
+  />
+</svg>
