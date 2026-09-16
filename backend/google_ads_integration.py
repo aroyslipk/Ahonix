@@ -353,11 +353,15 @@ async def get_google_ads_status(user: dict = Depends(get_current_user)):
     ws = await _get_active_workspace_fn(user)
     ws_id = ws["workspace_id"]
 
+    cfg = get_google_ads_config()
+    is_configured = bool(cfg["client_id"] and cfg["client_secret"])
+
     if ws.get("is_demo"):
         return {
             "platform": "google_ads",
             "connected": False,
-            "status": "disconnected",
+            "status": "demo_locked",
+            "configured": is_configured,
             "is_demo": True,
             "selected_customer_id": None,
             "selected_account_name": None,
@@ -375,10 +379,12 @@ async def get_google_ads_status(user: dict = Depends(get_current_user)):
     )
 
     if not conn or conn.get("status") != "connected":
+        unconnected_status = conn.get("status", "disconnected") if conn else ("not_configured" if not is_configured else "disconnected")
         return {
             "platform": "google_ads",
             "connected": False,
-            "status": conn.get("status", "disconnected") if conn else "disconnected",
+            "status": unconnected_status,
+            "configured": is_configured,
             "is_demo": False,
             "selected_customer_id": None,
             "selected_account_name": None,
@@ -394,6 +400,7 @@ async def get_google_ads_status(user: dict = Depends(get_current_user)):
         "platform": "google_ads",
         "connected": True,
         "status": conn.get("status", "connected"),
+        "configured": is_configured,
         "is_demo": False,
         "selected_customer_id": conn.get("selected_customer_id"),
         "selected_account_name": conn.get("selected_account_name"),

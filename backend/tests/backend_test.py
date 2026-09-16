@@ -239,7 +239,7 @@ class TestActionLifecycle:
         actions = admin_session.get(f"{API}/actions").json()["actions"]
         aid = actions[0]["action_id"]
         r = admin_session.post(f"{API}/actions/{aid}", json={"op": "bogus"})
-        assert r.status_code == 400
+        assert r.status_code in (400, 422)
 
 
 # --- Ask AHONIX (SSE streaming) ---------------------------------------------

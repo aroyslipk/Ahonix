@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, User, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
 import { api, formatApiErrorDetail } from "@/lib/api";
@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AuthShell, GoogleButton } from "@/pages/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -14,6 +15,10 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verificationPending, setVerificationPending] = useState(false);
+  const [devToken, setDevToken] = useState(null);
+  const [resending, setResending] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -39,20 +44,102 @@ export default function Register() {
     }
   }, []);
 
+  const handleResend = async () => {
+    setResending(true);
+    try {
+      await api.post("/auth/resend-verification", { email });
+      setResendSent(true);
+      toast.success("Verification link sent! Check your inbox.");
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err.response?.data?.detail) || "Failed to resend email.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       const { data } = await api.post("/auth/register", { name, email, password });
-      setUser(data);
-      navigate("/onboarding", { replace: true });
+      if (data?.requires_verification) {
+        setVerificationPending(true);
+        if (data.dev_token) {
+          setDevToken(data.dev_token);
+        }
+      } else {
+        setUser(data);
+        navigate("/onboarding", { replace: true });
+      }
     } catch (err) {
       setError(formatApiErrorDetail(err.response?.data?.detail) || err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (verificationPending) {
+    return (
+      <AuthShell
+        title="Check your inbox"
+        subtitle={`We sent a verification link to ${email}`}
+        footer={
+          <Link
+            to="/login"
+            className="font-bold text-[#00E599] hover:underline"
+            data-testid="link-login"
+          >
+            Return to sign in
+          </Link>
+        }
+      >
+        <div className="space-y-4" data-testid="verification-pending-card">
+          <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#00E599]/30 bg-[#00E599]/10 text-[#00E599]">
+              <Mail size={22} />
+            </div>
+            <h3 className="text-sm font-semibold text-[#F8FAFC]">Verification link dispatched</h3>
+            <p className="mt-1.5 text-xs text-[#94A3B8] leading-relaxed">
+              Please click the link in your email to verify your account and sign in.
+            </p>
+          </div>
+
+          {devToken && (
+            <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/20 p-3 text-xs text-emerald-300">
+              <div className="font-semibold text-emerald-200">Local Development Fallback</div>
+              <p className="mt-1 text-[11px] text-emerald-300/90">
+                Resend / SMTP not required locally. You can verify instantly:
+              </p>
+              <Link
+                to={`/verify-email?token=${devToken}`}
+                className="mt-2 inline-flex items-center gap-1.5 font-bold text-[#00E599] underline hover:text-[#00c984]"
+                data-testid="dev-verify-link"
+              >
+                Verify Account Instantly →
+              </Link>
+            </div>
+          )}
+
+          <div className="pt-2 text-center">
+            {resendSent ? (
+              <p className="text-xs text-[#00E599]">Fresh verification link sent! Please check your inbox.</p>
+            ) : (
+              <button
+                type="button"
+                disabled={resending}
+                onClick={handleResend}
+                className="text-xs text-[#94A3B8] hover:text-[#00E599] transition-colors disabled:opacity-50"
+                data-testid="register-resend-btn"
+              >
+                {resending ? "Sending..." : "Didn't receive an email? Click to resend"}
+              </button>
+            )}
+          </div>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell

@@ -14,6 +14,7 @@ import {
   Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 // Meta and Google Ads Brand Icons
 export function MetaIcon({ className = "w-5 h-5" }) {
@@ -68,6 +69,8 @@ export function MarketingIntegrationCard({
   const isDemo = workspace?.is_demo;
   const isConnected = Boolean(statusData?.connected);
   const isReauthRequired = statusData?.status === "reauth_required";
+  const isConfigured = statusData?.configured !== false && statusData?.status !== "not_configured";
+  const isNotConfigured = !isDemo && !isConnected && !isConfigured;
   const isCurrencyMismatch = Boolean(statusData?.currency_mismatch);
   const syncStatus = statusData?.sync_status || "idle";
   const isSyncingActive = syncStatus === "syncing" || syncing;
@@ -174,6 +177,13 @@ export function MarketingIntegrationCard({
                 <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-300">
                   <Lock size={10} /> Demo Locked
                 </span>
+              ) : isConnected ? (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400"
+                  data-testid={`${platform}-connected-badge`}
+                >
+                  <CheckCircle2 size={11} /> Connected
+                </span>
               ) : isReauthRequired ? (
                 <span
                   className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-300"
@@ -181,12 +191,12 @@ export function MarketingIntegrationCard({
                 >
                   <AlertTriangle size={11} /> Re-auth Required
                 </span>
-              ) : isConnected ? (
+              ) : isNotConfigured ? (
                 <span
-                  className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400"
-                  data-testid={`${platform}-connected-badge`}
+                  className="rounded-full border border-slate-700/60 bg-slate-800/40 px-2.5 py-0.5 text-[11px] font-medium text-slate-400"
+                  data-testid={`${platform}-not-configured-badge`}
                 >
-                  <CheckCircle2 size={11} /> Connected
+                  Not Configured
                 </span>
               ) : (
                 <span className="rounded-full border border-[#16221B] bg-[#070C0A] px-2.5 py-0.5 text-[11px] font-medium text-[#94A3B8]">
@@ -217,6 +227,8 @@ export function MarketingIntegrationCard({
                 ? statusData?.selected_account_name
                   ? `Account: ${statusData.selected_account_name} (${statusData.selected_account_id})`
                   : "Account connected. Select an active ad account to sync campaigns."
+                : isNotConfigured
+                ? `${title} is not configured in this environment (API credentials missing in server environment variables).`
                 : description}
             </p>
           </div>
@@ -281,6 +293,16 @@ export function MarketingIntegrationCard({
                 Disconnect
               </Button>
             </>
+          ) : isNotConfigured ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => toast.info(`${title} is not configured on this server. Add required credentials in server environment variables.`)}
+              className="border-slate-800 bg-[#070C0A] text-xs font-medium text-slate-400 hover:text-slate-300 hover:border-slate-700"
+              data-testid={`${platform}-not-configured-btn`}
+            >
+              Not Configured
+            </Button>
           ) : (
             <Button
               size="sm"

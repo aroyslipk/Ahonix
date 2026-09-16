@@ -5,6 +5,7 @@ import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { AuthShell, GoogleButton } from "@/pages/AuthShell";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function Login() {
   const [email, setEmail] = useState("alex@northstargoods.com");
@@ -12,6 +13,9 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -23,16 +27,43 @@ export default function Login() {
     }
   }, []);
 
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    try {
+      await api.post("/auth/resend-verification", { email: unverifiedEmail });
+      setResendSuccess(true);
+      toast.success("Verification link sent! Check your inbox.");
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err.response?.data?.detail) || "Failed to resend verification email.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
+    setUnverifiedEmail(null);
+    setResendSuccess(false);
     setLoading(true);
     try {
       const { data } = await api.post("/auth/login", { email, password });
       setUser(data);
       navigate(data.onboarding_completed ? "/app/overview" : "/onboarding", { replace: true });
     } catch (err) {
-      setError(formatApiErrorDetail(err.response?.data?.detail) || err.message);
+      const detail = err.response?.data?.detail;
+      const isUnverified = err.response?.status === 403 && (
+        detail?.code === "EMAIL_NOT_VERIFIED" ||
+        (typeof detail === "string" && detail.includes("not been verified")) ||
+        (detail?.message && detail.message.includes("not been verified"))
+      );
+      if (isUnverified) {
+        setUnverifiedEmail(detail?.email || email);
+        setError("Your email address has not been verified yet. Please check your inbox or resend verification.");
+      } else {
+        setError(formatApiErrorDetail(detail) || err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -56,14 +87,44 @@ export default function Login() {
       }
     >
       <form onSubmit={submit} className="space-y-4" data-testid="login-form">
-        {error && (
+        {unverifiedEmail ? (
+          <div
+            className="rounded-xl border border-amber-500/40 bg-amber-950/20 p-3.5 text-xs text-amber-200"
+            data-testid="unverified-email-notice"
+          >
+            <div className="flex items-start gap-2.5">
+              <Mail size={16} className="shrink-0 mt-0.5 text-amber-400" />
+              <div className="flex-1">
+                <p className="font-semibold text-amber-100">Email Verification Required</p>
+                <p className="mt-1 text-[11px] text-amber-200/90 leading-relaxed">
+                  We sent a verification link to <strong>{unverifiedEmail}</strong>. Please confirm your email address to log in.
+                </p>
+                {resendSuccess ? (
+                  <p className="mt-2 text-[11px] font-semibold text-[#00E599]">
+                    ✓ Fresh verification link sent! Please check your inbox.
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={resending}
+                    onClick={handleResendVerification}
+                    className="mt-2 inline-flex items-center gap-1 font-semibold text-[#00E599] hover:underline disabled:opacity-50"
+                    data-testid="resend-unverified-btn"
+                  >
+                    {resending ? "Sending link..." : "Resend verification link →"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : error ? (
           <div
             className="rounded-xl border border-rose-900/50 bg-rose-950/30 px-3.5 py-2.5 text-xs text-rose-300"
             data-testid="login-error"
           >
             {error}
           </div>
-        )}
+        ) : null}
 
         {/* Email */}
         <div>

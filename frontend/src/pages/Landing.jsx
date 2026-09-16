@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-import { api } from "@/lib/api";
+import { api, formatApiErrorDetail } from "@/lib/api";
 import { toast } from "sonner";
 import {
   ArrowRight,
@@ -206,7 +206,7 @@ export default function Landing() {
         }
       }
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Failed to initiate Stripe Checkout.");
+      toast.error(formatApiErrorDetail(err?.response?.data?.detail) || "Failed to initiate Stripe Checkout.");
     } finally {
       setCheckoutLoading(null);
     }

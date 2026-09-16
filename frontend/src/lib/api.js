@@ -34,7 +34,15 @@ export function formatApiErrorDetail(detail) {
       .map((e) => (e && typeof e.msg === "string" ? e.msg : JSON.stringify(e)))
       .filter(Boolean)
       .join(" ");
+  if (detail && typeof detail.message === "string") return detail.message;
   if (detail && typeof detail.msg === "string") return detail.msg;
+  if (typeof detail === "object") {
+    try {
+      return detail.message || detail.error || detail.detail || JSON.stringify(detail);
+    } catch {
+      return String(detail);
+    }
+  }
   return String(detail);
 }
 

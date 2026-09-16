@@ -17,7 +17,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from rate_limit import make_rate_limiter, check_rate_limit
-from email_service import send_password_reset_email, mask_email
+from email_service import send_password_reset_email, send_verification_email, mask_email
 
 logger = logging.getLogger("ahonix.auth")
 
@@ -86,8 +86,18 @@ def create_refresh_token(user_id: str) -> str:
 
 def _is_production() -> bool:
     """Detect production vs local dev for cookie secure flag."""
-    url = os.environ.get("APP_URL", os.environ.get("FRONTEND_URL", ""))
-    return not any(h in url for h in ("localhost", "127.0.0.1", "0.0.0.0"))
+    url = os.environ.get("APP_URL", os.environ.get("FRONTEND_URL", "")).strip()
+    if not url:
+        return False
+    return not any(h in url.lower() for h in ("localhost", "127.0.0.1", "0.0.0.0"))
+
+
+def is_production_env() -> bool:
+    """Check if current environment is production/staging."""
+    env = os.environ.get("ENVIRONMENT", "").strip().lower()
+    if env in ("test", "testing", "development", "local", "dev"):
+        return False
+    return bool(os.environ.get("RENDER") or env in ("production", "staging") or _is_production())
 
 
 def _set_jwt_cookies(response: Response, access: str, refresh: str):
@@ -103,6 +113,7 @@ def _public_user(u: dict) -> dict:
     return {
         "user_id": u["user_id"], "email": u["email"], "name": u.get("name", ""),
         "picture": u.get("picture"), "auth_provider": u.get("auth_provider", "password"),
+        "email_verified": u.get("email_verified", True),
         "onboarding_completed": u.get("onboarding_completed", False),
         "active_workspace_id": u.get("active_workspace_id"),
     }
@@ -175,10 +186,19 @@ class ResetBody(BaseModel):
     password: str = Field(..., min_length=6, max_length=128)
 
 
+class VerifyEmailBody(BaseModel):
+    token: str = Field(..., min_length=10, max_length=100)
+
+
+class ResendVerificationBody(BaseModel):
+    email: EmailStr
+
+
 # --- rate limiters (per-IP) --------------------------------------------------
 login_limiter = make_rate_limiter(max_calls=10, window_seconds=60, scope="login")
 register_limiter = make_rate_limiter(max_calls=5, window_seconds=60, scope="register")
 forgot_limiter = make_rate_limiter(max_calls=3, window_seconds=60, scope="forgot")
+resend_limiter = make_rate_limiter(max_calls=3, window_seconds=60, scope="resend_verify")
 
 router = APIRouter(prefix="/api/auth")
 
@@ -191,37 +211,171 @@ async def register(body: RegisterBody, response: Response, _rl=Depends(register_
     if await _db.users.find_one({"email": email}):
         raise HTTPException(status_code=400, detail="An account with this email already exists.")
     user_id = f"user_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    now_iso = now.isoformat()
     doc = {
         "user_id": user_id, "email": email, "name": body.name.strip() or email.split("@")[0],
         "password_hash": hash_password(body.password), "auth_provider": "password",
+        "email_verified": False,
         "onboarding_completed": False, "active_workspace_id": None,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now_iso,
     }
     await _db.users.insert_one(doc)
-    _set_jwt_cookies(response, create_access_token(user_id, email), create_refresh_token(user_id))
-    return _public_user(doc)
+
+    # Generate fresh cryptographically secure verification token (24-hour expiration)
+    verify_token = secrets.token_urlsafe(32)
+    expires_at_iso = (now + timedelta(hours=24)).isoformat()
+    if _db is not None:
+        await _db.email_verification_tokens.insert_one({
+            "token": verify_token,
+            "user_id": user_id,
+            "email": email,
+            "expires_at": expires_at_iso,
+            "used": False,
+            "created_at": now_iso,
+        })
+
+    # Dispatch transactional verification email (never leaks token in logs)
+    try:
+        await send_verification_email(to_email=email, verify_token=verify_token)
+    except Exception as e:
+        logger.error("Failed to dispatch verification email to %s: %s", mask_email(email), type(e).__name__)
+
+    dev_token = verify_token if not is_production_env() else None
+
+    # Note: Unverified users do not receive session cookies upon registration.
+    return {
+        "ok": True,
+        "requires_verification": True,
+        "message": "Verification email sent. Please check your inbox to activate your account.",
+        "email": email,
+        "dev_token": dev_token,
+        **_public_user(doc),
+    }
+
+
+@router.post("/verify-email")
+async def verify_email(body: VerifyEmailBody, response: Response):
+    """Validate verification token, mark account verified, and authenticate user."""
+    token = body.token.strip()
+    if not re.match(r'^[A-Za-z0-9_-]{10,100}$', token):
+        raise HTTPException(status_code=400, detail="Invalid verification token.")
+
+    rec = await _db.email_verification_tokens.find_one({"token": token}) if _db is not None else None
+    if not rec or rec.get("used"):
+        raise HTTPException(status_code=400, detail="Invalid or already used verification token.")
+
+    expires_str = rec.get("expires_at")
+    if expires_str:
+        try:
+            exp_dt = datetime.fromisoformat(expires_str.replace("Z", "+00:00"))
+            if datetime.now(timezone.utc) > exp_dt:
+                raise HTTPException(status_code=400, detail="Verification link has expired. Please request a new one.")
+        except Exception:
+            pass
+
+    user = await _db.users.find_one({"user_id": rec["user_id"]}) if _db is not None else None
+    if not user:
+        raise HTTPException(status_code=404, detail="User account not found.")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if _db is not None:
+        await _db.email_verification_tokens.update_one(
+            {"token": token},
+            {"$set": {"used": True, "verified_at": now_iso}}
+        )
+        await _db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"email_verified": True}}
+        )
+    user["email_verified"] = True
+
+    # Authenticate and set session cookies immediately on verification
+    _set_jwt_cookies(response, create_access_token(user["user_id"], user["email"]),
+                     create_refresh_token(user["user_id"]))
+
+    return {
+        "ok": True,
+        "message": "Account successfully verified! You are now signed in.",
+        "user": _public_user(user),
+    }
+
+
+@router.post("/resend-verification")
+async def resend_verification(body: ResendVerificationBody, _rl=Depends(resend_limiter)):
+    """Resend email verification link with per-email rate limiting."""
+    email = body.email.lower().strip()
+    check_rate_limit(f"resend_verify:{email}", max_calls=3, window_seconds=900)
+
+    user = await _db.users.find_one({"email": email}) if _db is not None else None
+    dev_token = None
+
+    if user and user.get("auth_provider") == "password" and user.get("email_verified") is False:
+        now = datetime.now(timezone.utc)
+        now_iso = now.isoformat()
+        expires_at_iso = (now + timedelta(hours=24)).isoformat()
+
+        if _db is not None:
+            await _db.email_verification_tokens.update_many(
+                {"user_id": user["user_id"], "used": False},
+                {"$set": {"used": True, "invalidated": True, "invalidated_at": now_iso}}
+            )
+
+            token = secrets.token_urlsafe(32)
+            await _db.email_verification_tokens.insert_one({
+                "token": token,
+                "user_id": user["user_id"],
+                "email": email,
+                "expires_at": expires_at_iso,
+                "used": False,
+                "created_at": now_iso,
+            })
+
+            try:
+                await send_verification_email(to_email=email, verify_token=token)
+            except Exception as e:
+                logger.error("Failed to resend verification email to %s: %s", mask_email(email), type(e).__name__)
+
+            if not is_production_env():
+                dev_token = token
+
+    return {
+        "ok": True,
+        "message": "If an unverified account exists, a fresh verification link has been sent.",
+        "dev_token": dev_token,
+    }
 
 
 @router.post("/login")
 async def login(body: LoginBody, request: Request, response: Response, _rl=Depends(login_limiter)):
     email = body.email.lower().strip()
     ident = f"{request.client.host if request.client else 'x'}:{email}"
-    attempt = await _db.login_attempts.find_one({"identifier": ident})
+    attempt = await _db.login_attempts.find_one({"identifier": ident}) if _db is not None else None
     if attempt and attempt.get("count", 0) >= 5:
         locked_until = attempt.get("locked_until")
         if locked_until and datetime.fromisoformat(locked_until) > datetime.now(timezone.utc):
             raise HTTPException(status_code=429, detail="Too many attempts. Try again in a few minutes.")
 
-    user = await _db.users.find_one({"email": email})
+    user = await _db.users.find_one({"email": email}) if _db is not None else None
     if not user or not user.get("password_hash") or not verify_password(body.password, user["password_hash"]):
-        await _db.login_attempts.update_one(
-            {"identifier": ident},
-            {"$inc": {"count": 1},
-             "$set": {"locked_until": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()}},
-            upsert=True)
+        if _db is not None:
+            await _db.login_attempts.update_one(
+                {"identifier": ident},
+                {"$inc": {"count": 1},
+                 "$set": {"locked_until": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()}},
+                upsert=True)
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
-    await _db.login_attempts.delete_one({"identifier": ident})
+    # Guard: check email verification status for password accounts
+    if user.get("auth_provider") == "password" and user.get("email_verified") is False:
+        raise HTTPException(
+            status_code=403,
+            detail="Email not verified. Please verify your email before logging in, or click Resend Verification.",
+            headers={"X-Account-Status": "unverified"}
+        )
+
+    if _db is not None:
+        await _db.login_attempts.delete_one({"identifier": ident})
     _set_jwt_cookies(response, create_access_token(user["user_id"], email),
                      create_refresh_token(user["user_id"]))
     return _public_user(user)
@@ -242,10 +396,15 @@ async def google_login(request: Request, redirect: str = "/app/overview"):
     if not cfg["client_id"]:
         logger.warning("Google OAuth login requested but GOOGLE_CLIENT_ID is not configured.")
         error_msg = "Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing in Render). Please sign in with email and password."
-        return RedirectResponse(
-            url=f"{frontend_url}/login?error={quote_plus(error_msg)}",
-            status_code=302
-        )
+        
+        # Check if browser navigation vs API/test client
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept:
+            return RedirectResponse(
+                url=f"{frontend_url}/login?error={quote_plus(error_msg)}",
+                status_code=302
+            )
+        raise HTTPException(status_code=503, detail=error_msg)
 
     state = secrets.token_urlsafe(32)
     now_utc = datetime.now(timezone.utc)

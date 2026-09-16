@@ -291,11 +291,14 @@ async def get_meta_status(user: dict = Depends(get_current_user)):
     ws_id = ws["workspace_id"]
     cfg = get_meta_config()
 
+    is_configured = bool(cfg["app_id"] and cfg["app_secret"])
+
     if ws.get("is_demo"):
         return {
             "platform": "meta",
             "connected": False,
-            "status": "disconnected",
+            "status": "demo_locked",
+            "configured": is_configured,
             "is_demo": True,
             "api_version": cfg["api_version"],
             "selected_account_id": None,
@@ -313,10 +316,12 @@ async def get_meta_status(user: dict = Depends(get_current_user)):
     )
 
     if not conn or conn.get("status") != "connected":
+        unconnected_status = conn.get("status", "disconnected") if conn else ("not_configured" if not is_configured else "disconnected")
         return {
             "platform": "meta",
             "connected": False,
-            "status": conn.get("status", "disconnected") if conn else "disconnected",
+            "status": unconnected_status,
+            "configured": is_configured,
             "is_demo": False,
             "api_version": conn.get("api_version", cfg["api_version"]) if conn else cfg["api_version"],
             "selected_account_id": None,
@@ -332,6 +337,7 @@ async def get_meta_status(user: dict = Depends(get_current_user)):
         "platform": "meta",
         "connected": True,
         "status": conn.get("status", "connected"),
+        "configured": is_configured,
         "is_demo": False,
         "api_version": conn.get("api_version", cfg["api_version"]),
         "selected_account_id": conn.get("selected_account_id"),

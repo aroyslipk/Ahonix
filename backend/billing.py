@@ -147,47 +147,46 @@ async def list_plans():
 
 @router.get("/status")
 async def get_subscription_status(user: dict = Depends(get_current_user)):
-    """Get the active subscription status for the current workspace."""
+    """Get the active subscription status for the current workspace.
+    Truthful billing: Defaults to Free Tier or Demo Sandbox when unconfigured without faking paid plans.
+    """
     if _db is None or _get_active_workspace_fn is None:
         raise HTTPException(status_code=500, detail="Billing module not initialized.")
 
     ws = await _get_active_workspace_fn(user)
     ws_id = ws["workspace_id"]
+    is_demo = ws.get("is_demo", False)
 
     sub = await _db.subscriptions.find_one({"workspace_id": ws_id}, {"_id": 0})
 
-    if not sub:
-        # Default status for new workspace: 14-day free trial on Growth tier
-        created_at_str = ws.get("created_at")
-        try:
-            created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00")) if created_at_str else datetime.now(timezone.utc)
-        except Exception:
-            created_at = datetime.now(timezone.utc)
-
-        trial_end = created_at + timedelta(days=14)
-        now = datetime.now(timezone.utc)
-        days_left = max(0, (trial_end - now).days)
-        is_trialing = now < trial_end
-
+    # Truthful unconfigured / free tier fallback when no paid subscription exists
+    if not sub or sub.get("status") not in ("active", "trialing") or sub.get("plan_id") not in PLANS:
         return {
             "workspace_id": ws_id,
-            "plan_id": "growth",
-            "plan_name": PLANS["growth"]["name"],
-            "status": "trialing" if is_trialing else "active",
+            "plan_id": "demo" if is_demo else "free",
+            "plan_name": "Demo Sandbox Tier" if is_demo else "Free Tier",
+            "status": "demo" if is_demo else "unconfigured",
             "interval": "month",
-            "trial_days_remaining": days_left,
-            "trial_end": trial_end.isoformat(),
-            "current_period_end": trial_end.isoformat(),
+            "trial_days_remaining": 0,
+            "trial_end": None,
+            "current_period_end": None,
             "cancel_at_period_end": False,
             "stripe_customer_id": None,
+            "configured": is_stripe_configured(),
+            "is_configured": is_stripe_configured(),
             "is_sandbox": not is_stripe_configured(),
-            "features": PLANS["growth"]["features"],
+            "has_active_subscription": False,
+            "features": [
+                "Real-time Core Analytics",
+                "1 Verified Shopify Storefront",
+                "Zero-Fabrication Metric Integrity",
+            ],
         }
 
-    plan_info = PLANS.get(sub.get("plan_id", "growth"), PLANS["growth"])
+    plan_info = PLANS.get(sub.get("plan_id"), PLANS["growth"])
     return {
         "workspace_id": ws_id,
-        "plan_id": sub.get("plan_id", "growth"),
+        "plan_id": sub.get("plan_id"),
         "plan_name": plan_info["name"],
         "status": sub.get("status", "active"),
         "interval": sub.get("interval", "month"),
@@ -196,7 +195,10 @@ async def get_subscription_status(user: dict = Depends(get_current_user)):
         "current_period_end": sub.get("current_period_end"),
         "cancel_at_period_end": sub.get("cancel_at_period_end", False),
         "stripe_customer_id": sub.get("stripe_customer_id"),
+        "configured": is_stripe_configured(),
+        "is_configured": is_stripe_configured(),
         "is_sandbox": sub.get("is_sandbox", not is_stripe_configured()),
+        "has_active_subscription": True,
         "features": plan_info["features"],
     }
 
@@ -309,85 +311,59 @@ async def create_checkout_session(body: CheckoutSessionRequest, user: dict = Dep
             logger.error("Stripe live checkout session creation failed: %s", e)
             raise HTTPException(status_code=500, detail=f"Failed to create Stripe checkout session: {str(e)}")
 
-    # --- Sandbox Fallback Mode ---
-    mock_session_id = f"cs_sandbox_{uuid.uuid4().hex[:16]}"
-    now = datetime.now(timezone.utc)
-    current_period_end = (now + timedelta(days=365 if body.interval == "year" else 30)).isoformat()
-
-    await _db.subscriptions.update_one(
-        {"workspace_id": ws_id},
-        {
-            "$set": {
-                "workspace_id": ws_id,
-                "user_id": user["user_id"],
-                "plan_id": plan_id,
-                "interval": body.interval,
-                "status": "active",
-                "current_period_end": current_period_end,
-                "cancel_at_period_end": False,
-                "is_sandbox": True,
-                "updated_at": now.isoformat(),
-            }
-        },
-        upsert=True,
+    # --- Unconfigured Mode Guard ---
+    raise HTTPException(
+        status_code=503,
+        detail="Billing is not configured for this environment (STRIPE_SECRET_KEY missing). Paid checkout is disabled.",
     )
-
-    sandbox_url = f"{frontend_url}/app/settings?billing=sandbox_activated&plan={plan_id}&interval={body.interval}"
-    return {
-        "checkout_url": sandbox_url,
-        "session_id": mock_session_id,
-        "mode": "sandbox",
-        "plan": plan_id,
-        "message": "Sandbox mode: Subscription instantly activated without external charges.",
-    }
 
 
 @router.post("/customer-portal")
-async def create_customer_portal(body: CustomerPortalRequest, user: dict = Depends(get_current_user)):
+async def create_customer_portal(body: Optional[CustomerPortalRequest] = None, user: dict = Depends(get_current_user)):
     """Generate a Stripe Billing Customer Portal session for managing payment methods and invoices."""
+    if body is None:
+        body = CustomerPortalRequest()
     if _db is None or _get_active_workspace_fn is None:
         raise HTTPException(status_code=500, detail="Billing module not initialized.")
+
+    if not is_stripe_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="Billing portal is not configured for this environment (STRIPE_SECRET_KEY missing).",
+        )
 
     ws = await _get_active_workspace_fn(user)
     ws_id = ws["workspace_id"]
     frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000").rstrip("/")
     return_url = body.return_url or f"{frontend_url}/app/settings"
 
-    if is_stripe_configured():
-        stripe.api_key = get_stripe_secret_key()
-        try:
-            sub = await _db.subscriptions.find_one({"workspace_id": ws_id})
-            customer_id = sub.get("stripe_customer_id") if sub else None
+    stripe.api_key = get_stripe_secret_key()
+    try:
+        sub = await _db.subscriptions.find_one({"workspace_id": ws_id})
+        customer_id = sub.get("stripe_customer_id") if sub else None
 
-            if not customer_id:
-                customer = stripe.Customer.create(
-                    email=user.get("email"),
-                    name=user.get("name", "Merchant"),
-                    metadata={"workspace_id": ws_id, "user_id": user["user_id"]},
-                )
-                customer_id = customer.id
-                await _db.subscriptions.update_one(
-                    {"workspace_id": ws_id},
-                    {"$set": {"stripe_customer_id": customer_id}},
-                    upsert=True,
-                )
-
-            portal_session = stripe.billing_portal.Session.create(
-                customer=customer_id,
-                return_url=return_url,
+        if not customer_id:
+            customer = stripe.Customer.create(
+                email=user.get("email"),
+                name=user.get("name", "Merchant"),
+                metadata={"workspace_id": ws_id, "user_id": user["user_id"]},
             )
-            return {"portal_url": portal_session.url, "mode": "live"}
+            customer_id = customer.id
+            await _db.subscriptions.update_one(
+                {"workspace_id": ws_id},
+                {"$set": {"stripe_customer_id": customer_id}},
+                upsert=True,
+            )
 
-        except Exception as e:
-            logger.error("Stripe customer portal creation failed: %s", e)
-            raise HTTPException(status_code=500, detail=f"Failed to generate customer portal: {str(e)}")
+        portal_session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=return_url,
+        )
+        return {"portal_url": portal_session.url, "mode": "live"}
 
-    # Sandbox fallback: return simulated settings portal URL
-    return {
-        "portal_url": f"{frontend_url}/app/settings?portal=simulated",
-        "mode": "sandbox",
-        "message": "Sandbox mode: Billing portal simulated.",
-    }
+    except Exception as e:
+        logger.error("Stripe customer portal creation failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to generate customer portal: {str(e)}")
 
 
 @router.post("/sandbox-upgrade")

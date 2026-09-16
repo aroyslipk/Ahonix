@@ -68,7 +68,7 @@ def test_list_plans():
     assert len(starter["features"]) > 0
 
 
-def test_get_subscription_status_default_trial(mock_user_and_workspace, mock_db):
+def test_get_subscription_status_default_free_tier(mock_user_and_workspace, mock_db):
     user, ws = mock_user_and_workspace
     billing.init_billing(mock_db, AsyncMock(return_value=ws))
     app.dependency_overrides[get_current_user] = lambda: user
@@ -78,12 +78,12 @@ def test_get_subscription_status_default_trial(mock_user_and_workspace, mock_db)
     assert res.status_code == 200
     data = res.json()
     assert data["workspace_id"] == "ws_test_456"
-    assert data["plan_id"] == "growth"
-    assert data["status"] in ("trialing", "active")
+    assert data["plan_id"] in ("free", "demo")
+    assert data["has_active_subscription"] is False
     assert "features" in data
 
 
-def test_create_checkout_session_sandbox(mock_user_and_workspace, mock_db, monkeypatch):
+def test_create_checkout_session_unconfigured_503(mock_user_and_workspace, mock_db, monkeypatch):
     monkeypatch.delenv("STRIPE_SECRET_KEY", raising=False)
     user, ws = mock_user_and_workspace
     billing.init_billing(mock_db, AsyncMock(return_value=ws))
@@ -92,12 +92,8 @@ def test_create_checkout_session_sandbox(mock_user_and_workspace, mock_db, monke
     client = TestClient(app)
     payload = {"plan_id": "growth", "interval": "month"}
     res = client.post("/api/billing/create-checkout-session", json=payload)
-    assert res.status_code == 200
-    data = res.json()
-    assert data["mode"] == "sandbox"
-    assert "checkout_url" in data
-    assert "sandbox_activated" in data["checkout_url"]
-    assert mock_db.subscriptions.update_one.called
+    assert res.status_code == 503
+    assert "STRIPE_SECRET_KEY missing" in res.json()["detail"]
 
 
 def test_create_checkout_session_invalid_plan(mock_user_and_workspace, mock_db):
@@ -136,7 +132,7 @@ def test_create_checkout_session_live_mode(mock_user_and_workspace, mock_db, mon
         assert data["session_id"] == "cs_test_live_123"
 
 
-def test_customer_portal_sandbox(mock_user_and_workspace, mock_db, monkeypatch):
+def test_customer_portal_unconfigured_503(mock_user_and_workspace, mock_db, monkeypatch):
     monkeypatch.delenv("STRIPE_SECRET_KEY", raising=False)
     user, ws = mock_user_and_workspace
     billing.init_billing(mock_db, AsyncMock(return_value=ws))
@@ -144,10 +140,8 @@ def test_customer_portal_sandbox(mock_user_and_workspace, mock_db, monkeypatch):
 
     client = TestClient(app)
     res = client.post("/api/billing/customer-portal", json={})
-    assert res.status_code == 200
-    data = res.json()
-    assert data["mode"] == "sandbox"
-    assert "portal_url" in data
+    assert res.status_code == 503
+    assert "STRIPE_SECRET_KEY missing" in res.json()["detail"]
 
 
 def test_sandbox_upgrade_direct(mock_user_and_workspace, mock_db):

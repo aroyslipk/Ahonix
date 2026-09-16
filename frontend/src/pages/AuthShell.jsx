@@ -1,6 +1,7 @@
 import React from "react";
 import { ShieldCheck, CheckCircle2, Lock, Zap, Award } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { toast } from "sonner";
 
 export function AuthShell({ title, subtitle, children, footer }) {
   return (
@@ -131,8 +132,10 @@ export function AuthShell({ title, subtitle, children, footer }) {
 
 export function GoogleButton({ label = "Continue with Google" }) {
   const [checking, setChecking] = React.useState(false);
+  const [inlineError, setInlineError] = React.useState("");
 
   const onClick = async () => {
+    setInlineError("");
     const isEmergent =
       typeof window !== "undefined" &&
       window.location.hostname.endsWith(".preview.emergentagent.com");
@@ -154,7 +157,9 @@ export function GoogleButton({ label = "Continue with Google" }) {
       if (res.ok) {
         const data = await res.json();
         if (data.configured === false) {
-          alert("Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing in Render environment variables). Please sign in using email and password, or add GOOGLE_CLIENT_ID to Render.");
+          const msg = "Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing). Please use email and password to sign in.";
+          setInlineError(msg);
+          toast.error(msg);
           setChecking(false);
           return;
         }
@@ -168,20 +173,31 @@ export function GoogleButton({ label = "Continue with Google" }) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={checking}
-      className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#16221B] bg-[#0B110E] py-3 text-xs font-semibold text-[#F8FAFC] transition-all duration-150 hover:border-[#00E599]/40 hover:bg-[#0F1713] disabled:opacity-50"
-      data-testid="google-auth-btn"
-    >
-      <svg width="18" height="18" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
-        <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
-      </svg>
-      {checking ? "Checking Google Auth..." : label}
-    </button>
+    <div className="space-y-2">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={checking}
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#16221B] bg-[#0B110E] py-3 text-xs font-semibold text-[#F8FAFC] transition-all duration-150 hover:border-[#00E599]/40 hover:bg-[#0F1713] disabled:opacity-50"
+        data-testid="google-auth-btn"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+          <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
+        </svg>
+        {checking ? "Checking Google Auth..." : label}
+      </button>
+
+      {inlineError && (
+        <div
+          className="rounded-xl border border-amber-500/40 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200"
+          data-testid="google-auth-inline-error"
+        >
+          {inlineError}
+        </div>
+      )}
+    </div>
   );
 }

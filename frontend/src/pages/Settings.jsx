@@ -26,7 +26,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useWorkspace } from "@/context/WorkspaceContext";
 import { Card, SectionHeader, Stat } from "@/components/primitives";
@@ -445,6 +445,10 @@ export default function Settings() {
   }, []);
 
   const handleInitiateCheckout = async (planId, interval) => {
+    if (billingStatus?.configured === false) {
+      toast.error("Stripe billing is not configured in this environment (STRIPE_SECRET_KEY missing).");
+      return;
+    }
     setCheckoutLoading(planId);
     try {
       const { data } = await api.post("/billing/create-checkout-session", {
@@ -463,13 +467,17 @@ export default function Settings() {
         }
       }
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Failed to initiate Stripe Checkout.");
+      toast.error(formatApiErrorDetail(err?.response?.data?.detail) || "Failed to initiate Stripe Checkout.");
     } finally {
       setCheckoutLoading(null);
     }
   };
 
   const handleOpenCustomerPortal = async () => {
+    if (billingStatus?.configured === false) {
+      toast.info("Stripe Customer Portal is unavailable because billing is not configured in this environment.");
+      return;
+    }
     setPortalLoading(true);
     try {
       const { data } = await api.post("/billing/customer-portal");
@@ -481,7 +489,7 @@ export default function Settings() {
         }
       }
     } catch (err) {
-      toast.error(err?.response?.data?.detail || "Failed to open Stripe Billing Portal.");
+      toast.error(formatApiErrorDetail(err?.response?.data?.detail) || "Stripe Customer Portal is unavailable.");
     } finally {
       setPortalLoading(false);
     }
@@ -1060,21 +1068,27 @@ export default function Settings() {
           <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4">
             <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Active Plan</p>
             <div className="mt-1 flex items-center gap-2">
-              <p className="text-base font-bold text-[#F8FAFC] capitalize">{billingStatus?.plan_name || "Growth"}</p>
-              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-[#00E599] border border-emerald-500/20">
-                {billingStatus?.interval === "year" ? "Annual" : "Monthly"}
-              </span>
+              <p className="text-base font-bold text-[#F8FAFC] capitalize">
+                {billingStatus?.plan_name || (billingStatus?.is_demo ? "Demo Sandbox Tier" : "Free Tier")}
+              </p>
+              {billingStatus?.has_active_subscription && (
+                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-[#00E599] border border-emerald-500/20">
+                  {billingStatus?.interval === "year" ? "Annual" : "Monthly"}
+                </span>
+              )}
             </div>
           </div>
 
           <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4">
             <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Subscription Status</p>
             <div className="mt-1 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#00E599] animate-pulse" />
+              <span className={`h-2 w-2 rounded-full ${billingStatus?.has_active_subscription ? "bg-[#00E599] animate-pulse" : "bg-slate-500"}`} />
               <p className="text-sm font-semibold text-[#F8FAFC] capitalize">
-                {billingStatus?.status === "trialing"
-                  ? `Trial (${billingStatus.trial_days_remaining}d left)`
-                  : billingStatus?.status || "Active"}
+                {billingStatus?.has_active_subscription
+                  ? (billingStatus?.status === "trialing"
+                      ? `Trial (${billingStatus.trial_days_remaining}d left)`
+                      : billingStatus?.status || "Active")
+                  : (billingStatus?.is_demo ? "Demo Sandbox" : "Free Tier / Unconfigured")}
               </p>
             </div>
           </div>
@@ -1084,14 +1098,16 @@ export default function Settings() {
             <p className="mt-1 text-sm font-semibold text-[#CBD5E1]">
               {billingStatus?.current_period_end
                 ? new Date(billingStatus.current_period_end).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
-                : "—"}
+                : "No active renewal"}
             </p>
           </div>
 
           <div className="rounded-xl border border-[#16221B] bg-[#0B110E] p-4">
             <p className="text-[11px] font-medium text-[#64748B] uppercase tracking-wider">Payment Gateway</p>
             <p className="mt-1 text-xs font-semibold text-[#94A3B8]">
-              {billingStatus?.is_sandbox ? "Sandbox Sandbox Mode" : "Stripe Live Production"}
+              {billingStatus?.configured
+                ? (billingStatus?.is_sandbox ? "Stripe Sandbox Mode" : "Stripe Live Production")
+                : "Stripe Not Configured"}
             </p>
           </div>
         </div>

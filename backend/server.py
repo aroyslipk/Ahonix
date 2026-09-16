@@ -694,7 +694,7 @@ async def get_actions(user: dict = Depends(get_current_user)):
 
 
 class ActionOp(BaseModel):
-    op: Literal["simulate", "approve", "execute", "measure"]
+    op: Literal["simulate", "approve", "execute", "measure", "archive", "restore"]
 
 
 @api.post("/actions/{action_id}")
@@ -702,6 +702,10 @@ async def mutate_action(action_id: str, body: ActionOp, user: dict = Depends(get
     # Validate action_id format
     if not action_id or len(action_id) > 100:
         raise HTTPException(status_code=400, detail="Invalid action ID")
+    transitions = {"simulate": "Simulated", "approve": "Approved",
+                   "execute": "Executed", "measure": "Measured"}
+    if body.op not in transitions:
+        raise HTTPException(status_code=400, detail=f"Invalid operation '{body.op}'. Choose from: {list(transitions.keys())}")
     ws, data = await get_workspace_data(user)
     if not data:
         raise HTTPException(status_code=400, detail="No demo workspace")
@@ -709,9 +713,7 @@ async def mutate_action(action_id: str, body: ActionOp, user: dict = Depends(get
     act = next((a for a in actions if a["action_id"] == action_id), None)
     if not act:
         raise HTTPException(status_code=404, detail="Action not found")
-    transitions = {"simulate": "Simulated", "approve": "Approved",
-                   "execute": "Executed", "measure": "Measured"}
-    new_stage = transitions[body.op]  # safe — Literal type guarantees valid op
+    new_stage = transitions[body.op]
     old_stage = act["stage"]
     # Only allow forward transitions — prevents duplicate execution / invalid state jumps.
     if LIFECYCLE.index(new_stage) <= LIFECYCLE.index(old_stage):
